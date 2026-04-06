@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="hbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0207"/>
+      <stop offset="40%" style="stop-color:#14020c"/>
+      <stop offset="100%" style="stop-color:#0d0208"/>
+    </linearGradient>
+    <radialGradient id="orb1" cx="22%" cy="35%" r="45%">
+      <stop offset="0%" style="stop-color:#e6007a;stop-opacity:0.18"/>
+      <stop offset="55%" style="stop-color:#e6007a;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="orb2" cx="78%" cy="55%" r="40%">
+      <stop offset="0%" style="stop-color:#19ff85;stop-opacity:0.1"/>
+      <stop offset="60%" style="stop-color:#19ff85;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" style="stop-color:#e6007a;stop-opacity:0"/>
+      <stop offset="50%" style="stop-color:#e6007a;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#e6007a;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="640" fill="url(#hbg)"/>
+  <rect width="1920" height="640" fill="url(#orb1)"/>
+  <rect width="1920" height="640" fill="url(#orb2)"/>
+  <!-- horizontal glow: kept in top band only so it doesn’t sit behind lede -->
+  <rect x="0" y="0" width="1920" height="110" fill="url(#beam)"/>
+  <!-- soft grid -->
+  <g opacity="0.07" stroke="#e6007a" stroke-width="0.6" fill="none">
+    <path d="M0 80h1920M0 160h1920M0 240h1920M0 320h1920M0 400h1920M0 480h1920M0 560h1920"/>
+    <path d="M120 0v640M240 0v640M360 0v640M480 0v640M600 0v640M720 0v640M840 0v640M960 0v640M1080 0v640M1200 0v640M1320 0v640M1440 0v640M1560 0v640M1680 0v640M1800 0v640"/>
+  </g>
+  <!-- storyline: same S curves as before, shifted down (+155 on Y) so they sit below the hero copy -->
+  <path d="M-40 575 C 200 535 320 455 520 435 S 900 395 1040 475 S 1280 615 1500 555 S 1780 475 1960 535" fill="none" stroke="#7dd3c0" stroke-width="2.5" stroke-linecap="round" opacity="0.35"/>
+  <path d="M-40 595 C 220 555 340 475 540 455 S 920 415 1060 495 S 1300 635 1520 575 S 1800 495 1960 555" fill="none" stroke="#7dd3c0" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
+  <!-- dual flows: meet at hub below text block -->
+  <path d="M 380 175 C 520 240 640 380 760 455" fill="none" stroke="#e6007a" stroke-width="1.8" opacity="0.28" stroke-linecap="round"/>
+  <path d="M 380 600 C 520 540 640 530 760 505" fill="none" stroke="#e6007a" stroke-width="1.8" opacity="0.28" stroke-linecap="round"/>
+  <circle cx="760" cy="505" r="36" fill="none" stroke="#e6007a" stroke-opacity="0.22" stroke-width="1.5"/>
+  <circle cx="760" cy="505" r="12" fill="#e6007a" fill-opacity="0.15"/>
+  <circle cx="760" cy="505" r="4" fill="#19ff85" fill-opacity="0.5"/>
+  <!-- floating frames (in / out) — nudged to stay off center copy -->
+  <rect x="1180" y="120" width="200" height="120" rx="16" fill="rgba(230,0,122,0.04)" stroke="#e6007a" stroke-opacity="0.2" stroke-width="1.2" transform="rotate(-4 1280 180)"/>
+  <rect x="1420" y="480" width="200" height="120" rx="16" fill="rgba(25,255,133,0.03)" stroke="#19ff85" stroke-opacity="0.15" stroke-width="1" transform="rotate(5 1520 540)"/>
+  <rect x="200" y="520" width="160" height="100" rx="12" fill="none" stroke="#e6007a" stroke-opacity="0.18" stroke-width="1"/>
+  <!-- small nodes -->
+  <circle cx="1180" cy="540" r="5" fill="#e6007a" opacity="0.35"/>
+  <circle cx="1520" cy="160" r="4" fill="#e6007a" opacity="0.3"/>
+  <circle cx="640" cy="100" r="3" fill="#7dd3c0" opacity="0.4"/>
+</svg>
