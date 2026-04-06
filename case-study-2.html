@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0208">
+  <title>Design System · Enterprise products — Siwen Fang</title>
+  <meta name="description" content="Case study: Governance-driven design system that unified four product teams and cut design-to-development handover time in half.">
+  <meta property="og:title" content="Design System · Enterprise products — Siwen Fang">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ink:#d5d3d3;--ink-secondary:#b3b3b3;--ink-tertiary:#979797;
+      --surface:#0d0208;--surface-alt:#16020a;--surface-raised:#16020a;
+      --border:#43162a;--border-light:#43162a;
+      --accent:#e6007a;--accent-hover:#ff0187;--accent-subtle:rgba(230,0,122,0.1);--accent-muted:rgba(230,0,122,0.25);
+      --warm:#19ff85;--warm-subtle:rgba(25,255,133,0.08);
+      --font-heading:'Space Mono',monospace;
+      --font-body:'Space Mono',monospace;
+      --text-xs:0.75rem;--text-sm:0.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.25rem;--text-2xl:1.5rem;--text-3xl:2rem;
+      --leading-tight:1.15;--leading-snug:1.35;--leading-normal:1.65;
+      --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;--space-7:3rem;--space-8:4rem;--space-9:6rem;--space-10:8rem;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-full:100px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,0.3);--shadow-md:0 4px 16px rgba(230,0,122,0.15),0 1px 3px rgba(0,0,0,0.3);--shadow-lg:0 12px 40px -8px rgba(0,0,0,0.3);
+      --ease-out:cubic-bezier(0.25,1,0.5,1);--ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+      --dur-fast:150ms;--dur-base:280ms;--dur-slow:500ms;
+      --content-measure:65ch;
+    }
+    html{scroll-behavior:smooth;}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    section[id]{scroll-margin-top:calc(3px + 4.5rem);}
+    body{font-family:var(--font-body);font-size:var(--text-base);background:var(--surface);color:var(--ink);line-height:var(--leading-normal);-webkit-font-smoothing:antialiased;}
+    body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e6007a 0%,#ff0187 30%,#19ff85 70%,#e6007a 100%);background-size:200% 100%;z-index:200;}
+    .skip-link{position:fixed;top:-100%;left:var(--space-4);background:var(--ink);color:var(--surface);padding:var(--space-3) var(--space-5);border-radius:0;font-size:var(--text-sm);font-weight:600;z-index:300;text-decoration:none;}
+    .skip-link:focus{top:3px;outline:2px solid var(--accent);outline-offset:2px;}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+    img,video{max-width:100%;height:auto;display:block;}
+
+    .nav-bar{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(13,2,8,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);}
+    .nav-inner{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-7);display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;color:var(--ink);text-decoration:none;padding:var(--space-2);min-height:44px;display:inline-flex;align-items:center;transition:color var(--dur-fast) var(--ease-out);}
+    .logo:hover{color:var(--accent);}
+    .back-link{font-size:var(--text-sm);color:var(--ink-secondary);text-decoration:none;font-weight:500;padding:var(--space-3) var(--space-4);min-height:44px;display:inline-flex;align-items:center;border-radius:0;transition:color var(--dur-fast),background var(--dur-fast);}
+    .back-link:hover{color:var(--ink);background:var(--accent-subtle);}
+
+    .container{max-width:1080px;margin:0 auto;padding:0 var(--space-7);}
+
+    /* Hero — same rhythm as case-study-4 */
+    @keyframes heroIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .hero-animate{opacity:0;animation:heroIn var(--dur-slow) var(--ease-out-expo) forwards;}
+    .hero-animate:nth-child(1){animation-delay:0.08s;}
+    .hero-animate:nth-child(2){animation-delay:0.18s;}
+    .hero-animate:nth-child(3){animation-delay:0.3s;}
+    .hero-animate:nth-child(4){animation-delay:0.42s;}
+    @media(prefers-reduced-motion:reduce){.hero-animate{opacity:1;animation:none;}}
+
+    .cs-hero{padding:calc(var(--space-10) + 80px) 0 var(--space-9);}
+    .cs-hero-tag{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:var(--space-4);display:inline-block;}
+    .cs-hero h1{font-family:var(--font-heading);font-size:clamp(2rem,4vw,var(--text-3xl));font-weight:700;line-height:var(--leading-tight);margin-bottom:var(--space-4);max-width:22em;letter-spacing:-0.02em;}
+    .cs-hero h1 em{font-style:normal;color:var(--accent);}
+    .cs-hero-subtitle{font-size:var(--text-lg);color:var(--ink-secondary);max-width:var(--content-measure);line-height:1.75;margin-bottom:var(--space-7);}
+    .cs-hero-media{margin-top:var(--space-7);}
+
+    .cs-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-6);padding:var(--space-7) 0;border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light);margin:0;}
+
+    /* Content sections: natural height, generous vertical rhythm (not full-screen each) */
+    .fm-section{padding:var(--space-9) 0;}
+    .fm-section--alt{background:var(--surface-alt);margin:0 calc(-50vw + 50%);padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%);padding-top:var(--space-9);padding-bottom:var(--space-9);}
+    .fm-kicker{font-family:var(--font-heading);font-size:var(--text-sm);font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:var(--space-4);}
+    .fm-section h2{font-family:var(--font-heading);font-size:clamp(1.35rem,2.5vw,1.75rem);font-weight:700;margin-bottom:var(--space-5);letter-spacing:-0.02em;}
+    .fm-section p{color:var(--ink-secondary);font-size:var(--text-base);line-height:1.82;margin-bottom:var(--space-4);max-width:var(--content-measure);}
+    .fm-section h3{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-3);margin-top:var(--space-6);}
+
+    /* Figma-style media frame: rounded + border on dark */
+    .fm-media{margin-top:var(--space-6);border-radius:var(--radius-lg);overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#0a0a0a;}
+    .cs-hero-media .fm-media{border:none;background:transparent;}
+    .fm-media img{width:100%;height:auto;vertical-align:middle;cursor:zoom-in;}
+    .fm-media--placeholder{min-height:200px;display:flex;align-items:center;justify-content:center;color:var(--ink-tertiary);font-family:var(--font-heading);font-size:var(--text-sm);padding:var(--space-6);}
+
+    .cs-meta dt{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-tertiary);margin-bottom:var(--space-2);}
+    .cs-meta dd{font-size:var(--text-sm);font-weight:500;color:var(--ink);}
+
+    .token-table{width:100%;border-collapse:collapse;margin:var(--space-6) 0;font-size:var(--text-sm);}
+    .token-table th{font-family:var(--font-heading);font-weight:600;text-align:left;padding:var(--space-3) var(--space-4);border-bottom:2px solid var(--border);color:var(--ink-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.06em;}
+    .token-table td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border-light);color:var(--ink-secondary);}
+    .token-table code{background:var(--surface-alt);padding:2px 6px;border-radius:4px;font-size:var(--text-xs);color:var(--accent);}
+
+    .inventory-title{margin-top:var(--space-7);}
+    .inventory-intro{color:var(--ink-secondary);font-size:var(--text-base);line-height:1.82;max-width:var(--content-measure);margin-bottom:var(--space-6);}
+    .inventory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin-top:var(--space-5);}
+    .inventory-card{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:var(--space-5);}
+    .inventory-cat-head{font-family:var(--font-heading);font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-3);display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);}
+    .inventory-cat-cn{color:var(--ink-tertiary);font-size:var(--text-sm);font-weight:500;}
+    .inventory-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;}
+    .inventory-list li{font-size:var(--text-sm);color:var(--ink-secondary);padding:var(--space-2) 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+    .inventory-list li:last-child{border-bottom:none;}
+    .inventory-comp-cn{color:var(--ink-tertiary);}
+
+    /* Documentation tabs — flat layout (no outer frame; matches Figma) */
+    .doc-tabs{margin-top:var(--space-6);border:none;border-radius:0;overflow:visible;background:transparent;}
+    .doc-tabs-bar{display:flex;flex-wrap:wrap;align-items:stretch;gap:var(--space-1);border:none;background:transparent;padding:0;}
+    .doc-tabs-bar button[role="tab"]{font-family:var(--font-heading);font-size:var(--text-sm);font-weight:600;color:var(--ink-tertiary);background:none;border:none;border-bottom:2px solid transparent;padding:var(--space-3) var(--space-4);margin-bottom:0;cursor:pointer;transition:color var(--dur-fast),border-color var(--dur-fast);}
+    .doc-tabs-bar button[role="tab"]:hover{color:var(--ink-secondary);}
+    .doc-tabs-bar button[role="tab"][aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);}
+    .doc-tabs-panels{padding:var(--space-5) 0 0;}
+    .doc-tab-panel[hidden]{display:none !important;}
+    .doc-tab-panel p{color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.8;margin-bottom:var(--space-4);max-width:52rem;}
+    .doc-tab-panel p:last-child{margin-bottom:0;}
+    .doc-tab-panel .fm-media{margin-top:0;border:none;background:transparent;border-radius:var(--radius-md);overflow:hidden;}
+
+    /* Anatomy / Variants tabs — stacked categories + figures (Figma-style) */
+    .doc-anatomy,.doc-variants{display:flex;flex-direction:column;gap:var(--space-6);}
+    .doc-anatomy-block,.doc-variants-block{display:flex;flex-direction:column;gap:var(--space-3);background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:var(--space-5) var(--space-6);}
+    .doc-tab-panel .doc-anatomy-label,.doc-tab-panel .doc-variants-label{font-family:var(--font-heading);font-weight:600;color:var(--ink-secondary);margin:0;max-width:none;line-height:1.45;}
+    .doc-tab-panel .doc-anatomy-label{font-size:var(--text-xs);letter-spacing:0.1em;text-transform:uppercase;}
+    .doc-tab-panel .doc-variants-label{font-size:var(--text-sm);letter-spacing:0.06em;text-transform:none;}
+    .doc-variants-note{font-weight:500;letter-spacing:0.03em;color:var(--ink-tertiary);font-size:var(--text-sm);}
+    .doc-tab-panel .doc-variants-desc{color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.75;margin:0;max-width:52rem;}
+    .doc-anatomy-block .fm-media{border-radius:0;}
+    .doc-anatomy-block .fm-media img{cursor:zoom-in;}
+
+    /* Specs tab — Figma-style boxed rows */
+    .doc-specs{display:flex;flex-direction:column;gap:var(--space-6);}
+    .doc-specs-block{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:var(--space-5) var(--space-6);}
+    .doc-specs-heading{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-tertiary);margin:0 0 var(--space-4);padding-bottom:var(--space-3);border-bottom:1px solid rgba(255,255,255,0.08);}
+    .doc-specs-list{margin:0;padding:0;}
+    .doc-specs-row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-5);padding:var(--space-3) 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+    .doc-specs-row:last-child{border-bottom:none;padding-bottom:0;}
+    .doc-specs-row dt{color:var(--ink-secondary);font-size:var(--text-sm);font-weight:500;margin:0;flex:1;min-width:0;display:flex;align-items:center;gap:var(--space-3);}
+    .doc-specs-row dd{margin:0;font-family:var(--font-heading);font-size:var(--text-sm);font-weight:600;color:var(--ink);text-align:right;white-space:nowrap;}
+    .doc-specs-swatch{width:22px;height:22px;border-radius:var(--radius-sm);flex-shrink:0;border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04);}
+
+    .module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin:var(--space-6) 0;}
+    .module-card{background:var(--surface-raised);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:var(--space-5);transition:transform var(--dur-base),box-shadow var(--dur-base);}
+    .module-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .module-card-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--accent-subtle);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:var(--text-lg);margin-bottom:var(--space-4);}
+    .module-card h4{font-family:var(--font-heading);font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2);}
+    .module-card p{font-size:var(--text-sm);color:var(--ink-secondary);line-height:1.6;margin-bottom:0;max-width:none;}
+
+    .data-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin:var(--space-7) 0;}
+    .data-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-xl);padding:var(--space-6) var(--space-4);text-align:center;transition:transform var(--dur-base),border-color var(--dur-base);}
+    .data-card:hover{transform:translateY(-2px);border-color:var(--accent-muted);}
+    .data-card .number{font-family:var(--font-heading);font-size:clamp(1.75rem,3vw,2.25rem);font-weight:700;color:var(--accent);line-height:1;margin-bottom:var(--space-3);}
+    .data-card h4{font-family:var(--font-heading);font-size:var(--text-sm);font-weight:700;margin-bottom:var(--space-2);}
+    .data-card p{font-size:var(--text-sm);color:var(--ink-tertiary);margin-bottom:0;max-width:none;line-height:1.5;}
+
+    .cs-next{border-top:1px solid var(--border-light);padding:var(--space-8) 0;text-align:center;}
+    .cs-next-label{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-tertiary);margin-bottom:var(--space-3);}
+    .cs-next a{font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:700;color:var(--ink);text-decoration:none;padding:var(--space-4) var(--space-6);border-radius:0;display:inline-flex;transition:color var(--dur-base),background var(--dur-base);}
+    .cs-next a:hover{color:var(--accent);background:var(--accent-subtle);}
+    footer{text-align:center;padding:var(--space-7);color:var(--ink-tertiary);font-size:var(--text-sm);border-top:1px solid var(--border-light);}
+
+    .lightbox{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:var(--space-6);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;cursor:zoom-out;}
+    .lightbox.open{opacity:1;visibility:visible;}
+    .lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:var(--radius-md);}
+    .lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;opacity:0.6;}
+    .lightbox-close:hover{opacity:1;}
+
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity 0.65s var(--ease-out),transform 0.65s var(--ease-out);}
+    .reveal.visible{opacity:1;transform:translateY(0);}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+
+    @media(max-width:1020px){
+      .inventory-grid{grid-template-columns:repeat(2,1fr);}
+    }
+    @media(max-width:820px){
+      .container{padding:0 var(--space-5);}
+      .cs-hero{padding-top:calc(var(--space-9) + 60px);}
+      .cs-meta{grid-template-columns:1fr 1fr;}
+      .module-grid{grid-template-columns:1fr;}
+      .data-grid{grid-template-columns:1fr 1fr;}
+      .inventory-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header class="nav-bar">
+    <nav class="nav-inner" aria-label="Case study navigation">
+      <a href="index.html" class="logo">Siwen</a>
+      <a href="index.html#work" class="back-link">&larr; All Projects</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <article>
+
+      <section id="hero" class="cs-hero" aria-labelledby="cs2-title">
+        <div class="container">
+          <span class="cs-hero-tag hero-animate">Case Study</span>
+          <h1 id="cs2-title" class="hero-animate">Design System &middot; <em>Enterprise products</em></h1>
+          <p class="cs-hero-subtitle hero-animate">Scaling design infrastructure for a compliance platform: a governance-driven system that unified four product teams and cut design-to-development handover time in half.</p>
+          <div class="cs-hero-media hero-animate">
+            <div class="fm-media">
+              <img src="images/case-study-2/overview.png" alt="Overview of the design system" width="1600" height="944" loading="lazy" decoding="async">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="container">
+        <dl class="cs-meta reveal" aria-label="Project details">
+          <div><dt>Role</dt><dd>Lead Designer</dd></div>
+          <div><dt>Timeline</dt><dd>3 months</dd></div>
+          <div><dt>Team</dt><dd>2 Designers, 1 Engineer</dd></div>
+          <div><dt>Deliverables</dt><dd>Component library, Tokens, Docs</dd></div>
+        </dl>
+      </div>
+
+      <section id="audit" class="fm-section">
+        <div class="container">
+          <p class="fm-kicker reveal">01 &mdash; Component Audit</p>
+          <h2 class="reveal">Understanding the Landscape</h2>
+          <p class="reveal">I audited every product surface to map UI patterns, quantify fragmentation, and surface where inconsistency was costing the team time.</p>
+        </div>
+      </section>
+
+      <section id="foundation" class="fm-section fm-section--alt">
+        <div class="container">
+          <p class="fm-kicker reveal">02 &mdash; Engineering Alignment</p>
+          <h2 class="reveal">Tokens, Handover &amp; Shared Language</h2>
+          <p class="reveal">I paired with front-end to define tokens that map directly to code—removing the &ldquo;translation layer&rdquo; that slowed handover.</p>
+
+          <h3 class="reveal">Token architecture</h3>
+          <table class="token-table reveal">
+            <thead><tr><th>Layer</th><th>Example</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Primitive</td><td><code>--color-teal-600</code></td><td>Raw values, never used directly</td></tr>
+              <tr><td>Semantic</td><td><code>--color-action-primary</code></td><td>Intent-based, used in components</td></tr>
+              <tr><td>Component</td><td><code>--button-bg-primary</code></td><td>Scoped to specific components</td></tr>
+            </tbody>
+          </table>
+
+          <h3 class="reveal inventory-title">Component Inventory</h3>
+          <p class="reveal inventory-intro">A comprehensive library covering 74 components across 8 categories &mdash; all designed, documented, and shipped within the 3-month timeline.</p>
+          <div class="inventory-grid reveal">
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#127912;</span> Style <span class="inventory-cat-cn">样式</span></h4>
+              <ul class="inventory-list">
+                <li>Color <span class="inventory-comp-cn">/ 色彩</span></li>
+                <li>Shadow <span class="inventory-comp-cn">/ 投影</span></li>
+                <li>Logo <span class="inventory-comp-cn">/ 标志</span></li>
+                <li>Illustrations <span class="inventory-comp-cn">/ 插画</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> General <span class="inventory-cat-cn">通用</span></h4>
+              <ul class="inventory-list">
+                <li>Button <span class="inventory-comp-cn">/ 按钮</span></li>
+                <li>Float Button <span class="inventory-comp-cn">/ 浮动按钮</span></li>
+                <li>Icon <span class="inventory-comp-cn">/ 图标</span></li>
+                <li>Typography <span class="inventory-comp-cn">/ 排版</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> Layout <span class="inventory-cat-cn">布局</span></h4>
+              <ul class="inventory-list">
+                <li>Divider <span class="inventory-comp-cn">/ 分割线</span></li>
+                <li>Flex <span class="inventory-comp-cn">/ 弹性布局</span></li>
+                <li>Grid <span class="inventory-comp-cn">/ 栅格</span></li>
+                <li>Layout <span class="inventory-comp-cn">/ 布局</span></li>
+                <li>Space <span class="inventory-comp-cn">/ 间距</span></li>
+                <li>Spliter <span class="inventory-comp-cn">/ 分隔面板</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> Navigation <span class="inventory-cat-cn">导航</span></h4>
+              <ul class="inventory-list">
+                <li>Anchor <span class="inventory-comp-cn">/ 锚点</span></li>
+                <li>Breadcrumb <span class="inventory-comp-cn">/ 面包屑</span></li>
+                <li>Dropdown <span class="inventory-comp-cn">/ 下拉菜单</span></li>
+                <li>Menu <span class="inventory-comp-cn">/ 导航菜单</span></li>
+                <li>Pagination <span class="inventory-comp-cn">/ 分页</span></li>
+                <li>Steps <span class="inventory-comp-cn">/ 步骤条</span></li>
+                <li>Top Navi <span class="inventory-comp-cn">/ 顶部导航</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> Form <span class="inventory-cat-cn">数据录入</span></h4>
+              <ul class="inventory-list">
+                <li>AutoComplete <span class="inventory-comp-cn">/ 自动完成</span></li>
+                <li>Cascader <span class="inventory-comp-cn">/ 级联选择</span></li>
+                <li>Checkbox <span class="inventory-comp-cn">/ 多选框</span></li>
+                <li>ColorPicker <span class="inventory-comp-cn">/ 颜色选择器</span></li>
+                <li>DatePicker <span class="inventory-comp-cn">/ 日期选择框</span></li>
+                <li>Form <span class="inventory-comp-cn">/ 表单</span></li>
+                <li>Filter <span class="inventory-comp-cn">/ 筛选</span></li>
+                <li>Input <span class="inventory-comp-cn">/ 输入框</span></li>
+                <li>InputNumber <span class="inventory-comp-cn">/ 数字输入框</span></li>
+                <li>Mentions <span class="inventory-comp-cn">/ 提及</span></li>
+                <li>Radio <span class="inventory-comp-cn">/ 单选框</span></li>
+                <li>Rate <span class="inventory-comp-cn">/ 评分</span></li>
+                <li>Select <span class="inventory-comp-cn">/ 选择器</span></li>
+                <li>Search <span class="inventory-comp-cn">/ 搜索</span></li>
+                <li>Slider <span class="inventory-comp-cn">/ 滑动输入条</span></li>
+                <li>Switch <span class="inventory-comp-cn">/ 开关</span></li>
+                <li>TimePicker <span class="inventory-comp-cn">/ 时间选择框</span></li>
+                <li>Transfer <span class="inventory-comp-cn">/ 穿梭框</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> Data <span class="inventory-cat-cn">数据展示</span></h4>
+              <ul class="inventory-list">
+                <li>Avatar <span class="inventory-comp-cn">/ 头像</span></li>
+                <li>Badge <span class="inventory-comp-cn">/ 徽标数</span></li>
+                <li>Calendar <span class="inventory-comp-cn">/ 日历</span></li>
+                <li>Card <span class="inventory-comp-cn">/ 卡片</span></li>
+                <li>Carousel <span class="inventory-comp-cn">/ 走马灯</span></li>
+                <li>Collapse <span class="inventory-comp-cn">/ 折叠面板</span></li>
+                <li>Descriptions <span class="inventory-comp-cn">/ 描述列表</span></li>
+                <li>Empty <span class="inventory-comp-cn">/ 空状态</span></li>
+                <li>List <span class="inventory-comp-cn">/ 列表</span></li>
+                <li>Popover <span class="inventory-comp-cn">/ 气泡卡片</span></li>
+                <li>QRCode <span class="inventory-comp-cn">/ 二维码</span></li>
+                <li>Segmented <span class="inventory-comp-cn">/ 分段控制器</span></li>
+                <li>Statistic <span class="inventory-comp-cn">/ 统计数值</span></li>
+                <li>Table <span class="inventory-comp-cn">/ 表格</span></li>
+                <li>Tabs <span class="inventory-comp-cn">/ 标签页</span></li>
+                <li>Tags <span class="inventory-comp-cn">/ 标签</span></li>
+                <li>Timeline <span class="inventory-comp-cn">/ 时间轴</span></li>
+                <li>Tooltip <span class="inventory-comp-cn">/ 文字提示</span></li>
+                <li>Tour <span class="inventory-comp-cn">/ 漫游式引导</span></li>
+                <li>Tree <span class="inventory-comp-cn">/ 树形控件</span></li>
+                <li>Chat History <span class="inventory-comp-cn">/ 聊天记录窗口</span></li>
+                <li>Action Bar <span class="inventory-comp-cn">/ 表格工具栏</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> Feedback <span class="inventory-cat-cn">反馈</span></h4>
+              <ul class="inventory-list">
+                <li>Alert <span class="inventory-comp-cn">/ 警告提示</span></li>
+                <li>Drawer <span class="inventory-comp-cn">/ 侧边抽屉</span></li>
+                <li>Message <span class="inventory-comp-cn">/ 全局提示</span></li>
+                <li>Modal <span class="inventory-comp-cn">/ 对话框</span></li>
+                <li>Popconfirm <span class="inventory-comp-cn">/ 气泡确认框</span></li>
+                <li>Progress <span class="inventory-comp-cn">/ 进度条</span></li>
+                <li>Result <span class="inventory-comp-cn">/ 结果</span></li>
+                <li>Skeleton <span class="inventory-comp-cn">/ 骨架屏</span></li>
+                <li>Spin <span class="inventory-comp-cn">/ 加载中</span></li>
+                <li>Watermark <span class="inventory-comp-cn">/ 水印</span></li>
+              </ul>
+            </div>
+            <div class="inventory-card">
+              <h4 class="inventory-cat-head"><span aria-hidden="true">&#128311;</span> Others <span class="inventory-cat-cn">其他</span></h4>
+              <ul class="inventory-list">
+                <li>Affix <span class="inventory-comp-cn">/ 固钉</span></li>
+                <li>Charts <span class="inventory-comp-cn">/ 图表</span></li>
+                <li>Fieldset <span class="inventory-comp-cn">/ 表单项集合</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="modules" class="fm-section">
+        <div class="container">
+          <p class="fm-kicker reveal">03 &mdash; Page Modules &amp; documentation</p>
+          <h2 class="reveal">Modular Building Blocks</h2>
+          <p class="reveal">Repeatable page modules let teams assemble compliant flows from a small set of patterns—predictable structure, flexible content.</p>
+
+          <div class="module-grid">
+            <div class="module-card reveal"><div class="module-card-icon">&#9776;</div><h4>Usage guidelines</h4><p>When to use each component in the compliance domain.</p></div>
+            <div class="module-card reveal"><div class="module-card-icon">&#10003;</div><h4>Do / Don&rsquo;t</h4><p>Visual examples of correct vs. incorrect usage.</p></div>
+            <div class="module-card reveal"><div class="module-card-icon">&#9881;</div><h4>Accessibility</h4><p>WCAG notes, keyboard behavior, and screen reader expectations.</p></div>
+          </div>
+
+          <div class="doc-tabs reveal" id="doc-tabs">
+            <div class="doc-tabs-bar" role="tablist" aria-label="Documentation">
+              <button type="button" role="tab" id="doc-tab-preview" aria-selected="true" aria-controls="doc-panel-preview" tabindex="0">Preview</button>
+              <button type="button" role="tab" id="doc-tab-anatomy" aria-selected="false" aria-controls="doc-panel-anatomy" tabindex="-1">Anatomy</button>
+              <button type="button" role="tab" id="doc-tab-variants" aria-selected="false" aria-controls="doc-panel-variants" tabindex="-1">Variants</button>
+              <button type="button" role="tab" id="doc-tab-specs" aria-selected="false" aria-controls="doc-panel-specs" tabindex="-1">Specs</button>
+            </div>
+            <div class="doc-tabs-panels">
+              <div class="doc-tab-panel" role="tabpanel" id="doc-panel-preview" aria-labelledby="doc-tab-preview">
+                <div class="fm-media">
+                  <img src="images/case-study-2/table%20preview.png" alt="Table component preview" loading="lazy" decoding="async">
+                </div>
+              </div>
+              <div class="doc-tab-panel" role="tabpanel" id="doc-panel-anatomy" aria-labelledby="doc-tab-anatomy" hidden>
+                <div class="doc-anatomy">
+                  <div class="doc-anatomy-block reveal">
+                    <p class="doc-anatomy-label">Table header</p>
+                    <div class="fm-media">
+                      <img src="images/case-study-2/table%20header.png" alt="Anatomy: table header" loading="lazy" decoding="async">
+                    </div>
+                  </div>
+                  <div class="doc-anatomy-block reveal">
+                    <p class="doc-anatomy-label">Table cell</p>
+                    <div class="fm-media">
+                      <img src="images/case-study-2/table%20cell.png" alt="Anatomy: table cell" loading="lazy" decoding="async">
+                    </div>
+                  </div>
+                  <div class="doc-anatomy-block reveal">
+                    <p class="doc-anatomy-label">Table row</p>
+                    <div class="fm-media">
+                      <img src="images/case-study-2/table%20row.png" alt="Anatomy: table row" loading="lazy" decoding="async">
+                    </div>
+                  </div>
+                  <div class="doc-anatomy-block reveal">
+                    <p class="doc-anatomy-label">Pagination</p>
+                    <div class="fm-media">
+                      <img src="images/case-study-2/pagination.png" alt="Anatomy: pagination" loading="lazy" decoding="async">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="doc-tab-panel" role="tabpanel" id="doc-panel-variants" aria-labelledby="doc-tab-variants" hidden>
+                <div class="doc-variants">
+                  <div class="doc-variants-block reveal">
+                    <p class="doc-variants-label">Default</p>
+                    <p class="doc-variants-desc">Baseline density and row height for primary workflows: standard column chrome, default padding, and full alignment grid.</p>
+                  </div>
+                  <div class="doc-variants-block reveal">
+                    <p class="doc-variants-label">Compact</p>
+                    <p class="doc-variants-desc">Reduced vertical spacing and tighter cell padding for dense dashboards and nested layouts without losing scanability.</p>
+                  </div>
+                  <div class="doc-variants-block reveal">
+                    <p class="doc-variants-label">Editable</p>
+                    <p class="doc-variants-desc">Inline edit pattern: focused cell, input swap, and validation feedback wired to the same tokens as standalone form controls.</p>
+                  </div>
+                  <div class="doc-variants-block reveal">
+                    <p class="doc-variants-label">Click interaction <span class="doc-variants-note">(hover, selected status)</span></p>
+                    <p class="doc-variants-desc">Row hover and selected states for pointer input; focus-visible and selection styles for keyboard—mapped to semantic color roles so engineering can reuse one interaction spec.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="doc-tab-panel" role="tabpanel" id="doc-panel-specs" aria-labelledby="doc-tab-specs" hidden>
+                <div class="doc-specs">
+                  <div class="doc-specs-block reveal">
+                    <p class="doc-specs-heading">Spacing &amp; height</p>
+                    <dl class="doc-specs-list">
+                      <div class="doc-specs-row">
+                        <dt>Cell padding (default)</dt>
+                        <dd>8px, 12px</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt>Cell padding (large)</dt>
+                        <dd>12px, 16px</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt>Cell padding (compact)</dt>
+                        <dd>8px, 8px</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt>Header height</dt>
+                        <dd>46px</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt>Row height (default)</dt>
+                        <dd>56px</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt>Row height (large)</dt>
+                        <dd>68px</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt>Row height (compact)</dt>
+                        <dd>52px</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div class="doc-specs-block reveal">
+                    <p class="doc-specs-heading">Color</p>
+                    <dl class="doc-specs-list">
+                      <div class="doc-specs-row">
+                        <dt><span class="doc-specs-swatch" style="background-color:#F5F7FA" aria-hidden="true"></span> Header background</dt>
+                        <dd>#F5F7FA</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt><span class="doc-specs-swatch" style="background-color:#FFFFFF" aria-hidden="true"></span> Row background default</dt>
+                        <dd>#FFFFFF</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt><span class="doc-specs-swatch" style="background-color:#EBFAF6" aria-hidden="true"></span> Row hover</dt>
+                        <dd>#EBFAF6</dd>
+                      </div>
+                      <div class="doc-specs-row">
+                        <dt><span class="doc-specs-swatch" style="background-color:#EBFAF6" aria-hidden="true"></span> Row selected</dt>
+                        <dd>#EBFAF6</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="impact" class="fm-section">
+        <div class="container">
+          <p class="fm-kicker reveal">04 &mdash; Impact</p>
+          <h2 class="reveal">Measurable Results</h2>
+          <p class="reveal">From fragmented surfaces to a shared system: faster handover, fewer one-off components, and one experience layer across the platform.</p>
+
+          <div class="data-grid">
+            <div class="data-card reveal"><div class="number">50%</div><h4>Faster handover</h4><p>Design-to-development cycle</p></div>
+            <div class="data-card reveal"><div class="number">74</div><h4>Components</h4><p>In the library</p></div>
+            <div class="data-card reveal"><div class="number">90%</div><h4>Consistency</h4><p>Across audited surfaces</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-next" aria-label="Next case study">
+        <div class="container">
+          <p class="cs-next-label">Next project</p>
+          <a href="case-study-3.html">OKX Flexible Loan Revamp &rarr;</a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Zoomed image">
+    <button type="button" class="lightbox-close" aria-label="Close">&times;</button>
+    <img src="" alt="">
+  </div>
+
+  <footer><div class="container">&copy; 2026 Siwen Fang</div></footer>
+
+  <script>
+    (function(){
+      var rev = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){ e.target.classList.add('visible'); rev.unobserve(e.target); }
+        });
+      },{ threshold:0.08, rootMargin:'0px 0px -32px 0px' });
+
+      document.querySelectorAll('.reveal').forEach(function(el){
+        var s = el.parentElement.querySelectorAll('.reveal');
+        el.style.transitionDelay = (Array.prototype.indexOf.call(s, el) * 60) + 'ms';
+        rev.observe(el);
+      });
+
+      var lb = document.getElementById('lightbox');
+      var lbImg = lb.querySelector('img');
+      document.querySelectorAll('.fm-media img').forEach(function(img){
+        img.addEventListener('click', function(){
+          lbImg.src = img.src;
+          lbImg.alt = img.alt;
+          lb.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+      function closeLb(){
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+      lb.addEventListener('click', closeLb);
+      lb.querySelector('.lightbox-close').addEventListener('click', closeLb);
+      lbImg.addEventListener('click', function(e){ e.stopPropagation(); closeLb(); });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeLb(); });
+
+      var docTabsRoot = document.getElementById('doc-tabs');
+      if(docTabsRoot){
+        var dtabs = docTabsRoot.querySelectorAll('[role="tab"]');
+        var dpanels = docTabsRoot.querySelectorAll('[role="tabpanel"]');
+        function selectDocTab(i){
+          dtabs.forEach(function(t, j){
+            var on = j === i;
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            t.tabIndex = on ? 0 : -1;
+          });
+          dpanels.forEach(function(p, j){ p.hidden = j !== i; });
+        }
+        dtabs.forEach(function(tab, i){
+          tab.addEventListener('click', function(){ selectDocTab(i); });
+          tab.addEventListener('keydown', function(e){
+            var ni = i;
+            if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ ni = (i + 1) % dtabs.length; e.preventDefault(); }
+            else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp'){ ni = (i - 1 + dtabs.length) % dtabs.length; e.preventDefault(); }
+            else if(e.key === 'Home'){ ni = 0; e.preventDefault(); }
+            else if(e.key === 'End'){ ni = dtabs.length - 1; e.preventDefault(); }
+            else{ return; }
+            dtabs[ni].focus();
+            selectDocTab(ni);
+          });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

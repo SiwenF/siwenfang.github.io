@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0208">
+  <title>Crypto Loan Proposition — Siwen Fang</title>
+  <meta name="description" content="Case study: 0-1 strategy for crypto lending — workshop-led discovery, app & web, and key product decisions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ink:#d5d3d3;--ink-secondary:#b3b3b3;--ink-tertiary:#979797;
+      --surface:#0d0208;--surface-alt:#16020a;--surface-raised:#1a1216;
+      --border:#43162a;--border-light:#43162a;
+      --accent:#e6007a;--accent-hover:#ff0187;--accent-subtle:rgba(230,0,122,0.1);--accent-muted:rgba(230,0,122,0.25);
+      --warm:#19ff85;--warm-subtle:rgba(25,255,133,0.08);
+      --font-heading:'Space Mono',monospace;--font-body:'Space Mono',monospace;--font-ui:'Inter',system-ui,sans-serif;
+      --text-xs:0.75rem;--text-sm:0.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.25rem;--text-2xl:1.5rem;--text-3xl:2rem;
+      --leading-tight:1.15;--leading-normal:1.65;
+      --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;--space-7:3rem;--space-8:4rem;--space-9:6rem;--space-10:8rem;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-full:100px;
+      --ease-out:cubic-bezier(0.25,1,0.5,1);--dur-fast:150ms;--dur-base:280ms;
+    }
+    html{scroll-behavior:smooth;}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    section[id]{scroll-margin-top:calc(3px + 4.5rem);}
+    body{font-family:var(--font-body);font-size:var(--text-base);background:var(--surface);color:var(--ink);line-height:var(--leading-normal);-webkit-font-smoothing:antialiased;}
+    body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e6007a 0%,#ff0187 30%,#19ff85 70%,#e6007a 100%);background-size:200% 100%;z-index:200;}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+    .skip-link{position:fixed;top:-100%;left:var(--space-4);background:var(--ink);color:var(--surface);padding:var(--space-3) var(--space-5);border-radius:0;font-size:var(--text-sm);font-weight:600;z-index:300;text-decoration:none;}
+    .skip-link:focus{top:3px;outline:2px solid var(--accent);outline-offset:2px;}
+    .container{max-width:1080px;margin:0 auto;padding:0 var(--space-7);}
+    img{max-width:100%;height:auto;display:block;}
+
+    .nav-bar{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(13,2,8,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);}
+    .nav-inner{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-7);display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;color:var(--ink);text-decoration:none;padding:var(--space-2);margin:calc(-1 * var(--space-2));min-height:44px;display:inline-flex;align-items:center;transition:color var(--dur-fast) var(--ease-out);}
+    .logo:hover{color:var(--accent);}
+    .back-link{font-size:var(--text-sm);color:var(--ink-secondary);text-decoration:none;font-weight:500;padding:var(--space-3) var(--space-4);min-height:44px;display:inline-flex;align-items:center;border-radius:0;transition:color var(--dur-fast) var(--ease-out),background var(--dur-fast) var(--ease-out);}
+    .back-link:hover{color:var(--ink);background:var(--accent-subtle);}
+
+    /* —— Hero (Figma layout: full viewport, centered stack) —— */
+    .cs1-hero{
+      position:relative;
+      min-height:100vh;min-height:100svh;min-height:100dvh;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:calc(3px + 72px) var(--space-6) var(--space-8);
+      text-align:center;
+    }
+    .cs1-hero::before{
+      content:'';position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(230,0,122,0.07),transparent 55%);
+    }
+    .cs1-hero-inner{position:relative;z-index:1;max-width:40rem;width:100%;}
+    .cs1-hero-badge{
+      display:inline-flex;align-items:center;gap:var(--space-2);
+      padding:var(--space-2) var(--space-4);border-radius:0;
+      border:1px solid var(--accent-muted);background:var(--accent-subtle);
+      font-family:var(--font-heading);font-size:0.625rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:rgba(230,0,122,0.9);
+      margin-bottom:var(--space-6);
+    }
+    .cs1-hero h1{
+      font-family:var(--font-heading);
+      font-size:clamp(2rem,6vw,3.75rem);
+      font-weight:700;line-height:1.08;letter-spacing:-0.03em;color:#fff;
+      margin-bottom:var(--space-5);
+    }
+    .cs1-hero h1 .cs1-accent{color:var(--accent);}
+    .cs1-hero-lede{
+      font-family:var(--font-ui);font-size:clamp(0.9375rem,1.2vw,1.0625rem);
+      color:rgba(213,211,211,0.55);line-height:1.55;max-width:28rem;margin:0 auto var(--space-4);
+    }
+    .cs1-hero-meta{
+      display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-3) var(--space-4);
+      font-size:var(--text-xs);color:rgba(213,211,211,0.28);font-family:var(--font-heading);
+    }
+    .cs1-hero-meta span{display:inline-flex;align-items:center;gap:var(--space-2);}
+    .cs1-scroll-hint{
+      position:absolute;bottom:var(--space-8);left:50%;transform:translateX(-50%);
+      color:rgba(213,211,211,0.12);font-size:1.125rem;line-height:1;
+      animation:cs1-bounce 2.5s ease-in-out infinite;
+    }
+    @keyframes cs1-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+    @media(prefers-reduced-motion:reduce){.cs1-scroll-hint{animation:none}}
+
+    /* Scope tags */
+    .cs1-scope{padding:var(--space-9) var(--space-6);}
+    .cs1-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-3);max-width:48rem;margin:0 auto;}
+    .cs1-tag{
+      font-family:var(--font-heading);font-size:var(--text-xs);
+      padding:var(--space-3) var(--space-4);border-radius:0;
+      background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:rgba(213,211,211,0.45);
+    }
+
+    /* Section shell */
+    .cs1-section{padding:var(--space-9) var(--space-6);}
+    .cs1-section-head{text-align:center;margin-bottom:var(--space-8);max-width:40rem;margin-left:auto;margin-right:auto;}
+    .cs1-kicker{
+      font-family:var(--font-heading);font-size:0.625rem;letter-spacing:0.25em;text-transform:uppercase;
+      color:rgba(230,0,122,0.45);margin-bottom:var(--space-3);
+    }
+    .cs1-h2{font-family:var(--font-heading);font-size:clamp(1.5rem,4vw,2.75rem);font-weight:700;line-height:1.12;color:#fff;letter-spacing:-0.02em;}
+
+    /* Discovery */
+    .cs1-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-8);max-width:64rem;margin-left:auto;margin-right:auto;}
+    .cs1-grid-2 figure{border-radius:var(--radius-xl);overflow:hidden;aspect-ratio:3/2;background:var(--surface-raised);border:1px solid var(--border);}
+    .cs1-grid-2 img{width:100%;height:100%;object-fit:cover;}
+    /* Discovery: 3 images — equal row height, crop with cover */
+    .cs1-grid-2.cs1-discovery-grid{
+      grid-template-columns:1fr;gap:var(--space-4);max-width:90rem;
+    }
+    @media(min-width:900px){
+      .cs1-grid-2.cs1-discovery-grid{grid-template-columns:repeat(3,1fr);}
+    }
+    .cs1-grid-2.cs1-discovery-grid figure{
+      position:relative;margin:0;
+      aspect-ratio:4/3;
+      overflow:hidden;
+    }
+    .cs1-grid-2.cs1-discovery-grid figure img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center;
+    }
+    .cs1-steps{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-3);max-width:64rem;margin:0 auto;}
+    @media(min-width:900px){.cs1-steps{grid-template-columns:repeat(4,1fr);}}
+    .cs1-step{
+      background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+      border-radius:var(--radius-xl);padding:var(--space-5);text-align:left;
+      transition:border-color var(--dur-base) var(--ease-out);
+    }
+    .cs1-step:hover{border-color:rgba(230,0,122,0.25);}
+    .cs1-step-num{font-family:var(--font-heading);font-size:0.625rem;letter-spacing:0.15em;color:var(--accent);}
+    .cs1-step-title{font-family:var(--font-ui);font-size:var(--text-base);font-weight:500;color:rgba(255,255,255,0.92);margin:var(--space-2) 0 var(--space-1);}
+    .cs1-step-desc{font-size:var(--text-xs);color:rgba(213,211,211,0.35);line-height:1.5;}
+
+    /* Mobile devices — screenshot strip */
+    .cs1-mobile-strip{
+      overflow-x:auto;
+      overflow-y:visible;
+      -webkit-overflow-scrolling:touch;
+      scroll-snap-type:x proximity;
+      text-align:center;
+      padding:0 0 var(--space-5);
+      margin:0 calc(-1 * var(--space-6));
+      scrollbar-color:rgba(230,0,122,0.35) transparent;
+    }
+    .cs1-mobile-strip::-webkit-scrollbar{height:8px;}
+    .cs1-mobile-strip::-webkit-scrollbar-track{background:rgba(255,255,255,0.04);border-radius:0;}
+    .cs1-mobile-strip::-webkit-scrollbar-thumb{background:rgba(230,0,122,0.35);border-radius:0;}
+    .cs1-mobile-strip:focus-visible{outline:2px solid var(--accent);outline-offset:4px;}
+    .cs1-mobile-hint{font-size:0.625rem;font-family:var(--font-heading);letter-spacing:0.12em;text-transform:uppercase;color:rgba(213,211,211,0.28);margin:0 0 var(--space-4);text-align:center;}
+    @media(min-width:900px){.cs1-mobile-hint{display:none;}}
+    .cs1-mobile-row{
+      display:inline-flex;
+      flex-wrap:nowrap;
+      justify-content:center;
+      gap:var(--space-8);
+      align-items:flex-end;
+      vertical-align:bottom;
+      padding:0 var(--space-6) var(--space-2);
+    }
+    .cs1-device-col{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:var(--space-4);
+      flex:0 0 auto;
+      scroll-snap-align:center;
+    }
+    .cs1-device{
+      width:260px;height:562px;border-radius:32px;background:#0a0a0a;
+      overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);
+      position:relative;
+    }
+    .cs1-device-img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:top center;
+      display:block;
+    }
+    .cs1-device-label{font-size:var(--text-xs);color:rgba(213,211,211,0.4);font-family:var(--font-heading);max-width:14rem;text-align:center;line-height:1.35;}
+
+    /* Web browser + tabs */
+    .cs1-web-wrap{max-width:72rem;margin:0 auto;}
+    .cs1-tablist{display:flex;justify-content:center;gap:2px;margin-bottom:var(--space-6);padding:4px;background:rgba(255,255,255,0.03);border-radius:0;width:fit-content;margin-left:auto;margin-right:auto;flex-wrap:wrap;}
+    .cs1-tab{
+      font-family:var(--font-heading);font-size:var(--text-xs);padding:var(--space-3) var(--space-5);
+      border:none;border-radius:0;background:transparent;color:rgba(213,211,211,0.35);
+      cursor:pointer;transition:background var(--dur-base) var(--ease-out),color var(--dur-base) var(--ease-out);
+    }
+    .cs1-tab[aria-selected="true"]{background:rgba(255,255,255,0.08);color:#fff;}
+    .cs1-tab:hover{color:rgba(255,255,255,0.65);}
+    .cs1-browser{
+      border-radius:var(--radius-xl);overflow:hidden;border:1px solid rgba(255,255,255,0.08);
+      background:var(--surface-raised);
+    }
+    .cs1-browser-chrome{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:1px solid rgba(255,255,255,0.06);}
+    .cs1-browser-dots{display:flex;gap:6px;}
+    .cs1-browser-dots span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);}
+    .cs1-browser-url{flex:1;height:24px;max-width:20rem;margin:0 auto;background:rgba(255,255,255,0.04);border-radius:0;}
+    .cs1-browser-viewport{background:#fff;max-height:75vh;overflow:auto;contain:layout style;}
+    .cs1-web-panel{padding:0;font-family:var(--font-ui);}
+    .cs1-web-panel[hidden]{display:none !important;}
+    .cs1-web-panel-inner{width:100%;max-width:1440px;margin:0 auto;min-height:0;line-height:0;}
+    .cs1-web-shot{width:100%;height:auto;display:block;vertical-align:top;}
+
+    /* Key decisions */
+    .cs1-dec-grid{display:grid;grid-template-columns:1fr;gap:var(--space-4);max-width:56rem;margin:0 auto;}
+    @media(min-width:768px){.cs1-dec-grid{grid-template-columns:1fr 1fr;}}
+    .cs1-dec-card{
+      background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);
+      border-radius:var(--radius-xl);padding:var(--space-6);
+      transition:border-color var(--dur-base) var(--ease-out);
+    }
+    .cs1-dec-card:hover{border-color:rgba(230,0,122,0.2);}
+    .cs1-dec-card h3{font-family:var(--font-ui);font-size:var(--text-base);font-weight:500;color:rgba(255,255,255,0.88);margin-bottom:var(--space-2);}
+    .cs1-dec-card p{font-size:var(--text-sm);color:rgba(213,211,211,0.38);line-height:1.55;margin:0;}
+
+    .cs-next{border-top:1px solid var(--border-light);padding:var(--space-8) 0;text-align:center;}
+    .cs-next-label{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-tertiary);margin-bottom:var(--space-3);}
+    .cs-next a{font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:700;color:var(--ink);text-decoration:none;transition:color var(--dur-base) var(--ease-out);}
+    .cs-next a:hover{color:var(--accent);}
+
+    footer{text-align:center;padding:var(--space-7);color:var(--ink-tertiary);font-size:var(--text-sm);border-top:1px solid var(--border-light);}
+
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity 0.65s var(--ease-out),transform 0.65s var(--ease-out);}
+    .reveal.visible{opacity:1;transform:translateY(0);}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+
+    @media(max-width:768px){
+      .container{padding:0 var(--space-5);}
+      .cs1-grid-2{grid-template-columns:1fr;}
+      .cs1-web-panel-inner{min-height:0;}
+      .cs1-browser-viewport{max-height:none;}
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header class="nav-bar">
+    <nav class="nav-inner" aria-label="Case study navigation">
+      <a href="index.html" class="logo">Siwen</a>
+      <a href="index.html#work" class="back-link">&larr; All Projects</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <article aria-labelledby="case-title">
+
+      <section class="cs1-hero" id="hero" aria-labelledby="case-title">
+        <div class="cs1-hero-inner">
+          <p class="cs1-hero-badge">0 &rarr; 1 Strategy</p>
+          <h1 id="case-title">Crypto<br /><span class="cs1-accent">Loan Proposition</span></h1>
+          <p class="cs1-hero-lede">Defining the future of crypto lending through workshop-led discovery and cross-platform design — before a single line of code was written.</p>
+          <p class="cs1-hero-meta">Lead Designer <span aria-hidden="true">&middot;</span> App &amp; Web <span aria-hidden="true">&middot;</span> 3 Months</p>
+        </div>
+        <span class="cs1-scroll-hint" aria-hidden="true">&darr;</span>
+      </section>
+
+      <section class="cs1-scope reveal" id="scope" aria-label="Scope">
+        <div class="cs1-tags">
+          <span class="cs1-tag">Product Strategy</span>
+          <span class="cs1-tag">Discovery Workshop</span>
+          <span class="cs1-tag">User Research</span>
+          <span class="cs1-tag">Mobile App</span>
+          <span class="cs1-tag">Desktop Web</span>
+        </div>
+      </section>
+
+      <section class="cs1-section reveal" id="discovery" aria-labelledby="disc-h">
+        <header class="cs1-section-head">
+          <p class="cs1-kicker" id="disc-h">Discovery</p>
+          <h2 class="cs1-h2">Workshop-Led<br />Product Discovery</h2>
+        </header>
+        <div class="cs1-grid-2 cs1-discovery-grid">
+          <figure>
+            <img src="https://images.unsplash.com/photo-1674509036252-5a517959a3b4?auto=format&amp;fit=crop&amp;w=1080&amp;q=80" width="1080" height="720" alt="Workshop wall with sticky notes and brainstorming" loading="lazy" decoding="async">
+          </figure>
+          <figure>
+            <img src="images/case-study-1/discovery-workshop-board.png" width="1600" height="900" alt="Workshop board: Crypto Instalment discovery — entry points, user flow, and strategy notes" loading="lazy" decoding="async">
+          </figure>
+          <figure>
+            <img src="images/case-study-1/workshop%201.png" width="1600" height="900" alt="Workshop session artifacts and synthesis" loading="lazy" decoding="async">
+          </figure>
+        </div>
+        <div class="cs1-steps">
+          <div class="cs1-step">
+            <div class="cs1-step-num">01</div>
+            <p class="cs1-step-title">Align</p>
+            <p class="cs1-step-desc">Stakeholder mapping</p>
+          </div>
+          <div class="cs1-step">
+            <div class="cs1-step-num">02</div>
+            <p class="cs1-step-title">Discover</p>
+            <p class="cs1-step-desc">HMW &amp; affinity mapping</p>
+          </div>
+          <div class="cs1-step">
+            <div class="cs1-step-num">03</div>
+            <p class="cs1-step-title">Define</p>
+            <p class="cs1-step-desc">Value proposition canvas</p>
+          </div>
+          <div class="cs1-step">
+            <div class="cs1-step-num">04</div>
+            <p class="cs1-step-title">Prioritize</p>
+            <p class="cs1-step-desc">Impact &times; effort matrix</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs1-section reveal" id="mobile" aria-labelledby="mob-h">
+        <header class="cs1-section-head">
+          <p class="cs1-kicker" id="mob-h">App</p>
+          <h2 class="cs1-h2">Mobile Experience</h2>
+        </header>
+        <p class="cs1-mobile-hint">Scroll horizontally to see all screens</p>
+        <div class="cs1-mobile-strip" tabindex="0" role="region" aria-label="Mobile app screens">
+          <div class="cs1-mobile-row">
+            <div class="cs1-device-col">
+              <figure class="cs1-device">
+                <img class="cs1-device-img" src="images/case-study-1/onboarding.png" width="780" height="1686" alt="Onboarding screen" loading="lazy" decoding="async">
+              </figure>
+              <figcaption class="cs1-device-label">Onboarding</figcaption>
+            </div>
+            <div class="cs1-device-col">
+              <figure class="cs1-device">
+                <img class="cs1-device-img" src="images/case-study-1/subscription.png" width="780" height="1686" alt="Subscription screen" loading="lazy" decoding="async">
+              </figure>
+              <figcaption class="cs1-device-label">Subscription</figcaption>
+            </div>
+            <div class="cs1-device-col">
+              <figure class="cs1-device">
+                <img class="cs1-device-img" src="images/case-study-1/subscription%202.png" width="780" height="1686" alt="Subscription screen, step 2" loading="lazy" decoding="async">
+              </figure>
+              <figcaption class="cs1-device-label">Subscription (2)</figcaption>
+            </div>
+            <div class="cs1-device-col">
+              <figure class="cs1-device">
+                <img class="cs1-device-img" src="images/case-study-1/subscription%203.png" width="780" height="1686" alt="Subscription screen, step 3" loading="lazy" decoding="async">
+              </figure>
+              <figcaption class="cs1-device-label">Subscription (3)</figcaption>
+            </div>
+            <div class="cs1-device-col">
+              <figure class="cs1-device">
+                <img class="cs1-device-img" src="images/case-study-1/order%20management.png" width="780" height="1686" alt="Order management screen" loading="lazy" decoding="async">
+              </figure>
+              <figcaption class="cs1-device-label">Order management</figcaption>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs1-section reveal" id="web" aria-labelledby="web-h">
+        <header class="cs1-section-head">
+          <p class="cs1-kicker" id="web-h">Web</p>
+          <h2 class="cs1-h2">Desktop Experience</h2>
+        </header>
+        <div class="cs1-web-wrap">
+          <div class="cs1-tablist" role="tablist" aria-label="Desktop web screens">
+            <button type="button" class="cs1-tab" role="tab" id="tab-web-0" aria-selected="true" aria-controls="panel-web-0">Landing</button>
+            <button type="button" class="cs1-tab" role="tab" id="tab-web-1" aria-selected="false" aria-controls="panel-web-1">Subscription</button>
+            <button type="button" class="cs1-tab" role="tab" id="tab-web-2" aria-selected="false" aria-controls="panel-web-2">Order management</button>
+            <button type="button" class="cs1-tab" role="tab" id="tab-web-3" aria-selected="false" aria-controls="panel-web-3">Order details</button>
+          </div>
+          <div class="cs1-browser">
+            <div class="cs1-browser-chrome" aria-hidden="true">
+              <div class="cs1-browser-dots"><span></span><span></span><span></span></div>
+              <div class="cs1-browser-url"></div>
+            </div>
+            <div class="cs1-browser-viewport">
+              <div class="cs1-web-panel" role="tabpanel" id="panel-web-0" aria-labelledby="tab-web-0">
+                <div class="cs1-web-panel-inner">
+                  <img class="cs1-web-shot" src="images/case-study-1/web-landing.png" width="1440" height="900" alt="Desktop web: landing page" loading="lazy" decoding="async">
+                </div>
+              </div>
+              <div class="cs1-web-panel" role="tabpanel" id="panel-web-1" aria-labelledby="tab-web-1" hidden>
+                <div class="cs1-web-panel-inner">
+                  <img class="cs1-web-shot" src="images/case-study-1/web-subscription.png" width="1440" height="900" alt="Desktop web: subscription" loading="lazy" decoding="async">
+                </div>
+              </div>
+              <div class="cs1-web-panel" role="tabpanel" id="panel-web-2" aria-labelledby="tab-web-2" hidden>
+                <div class="cs1-web-panel-inner">
+                  <img class="cs1-web-shot" src="images/case-study-1/web-order%20management.png" width="1440" height="900" alt="Desktop web: order management" loading="lazy" decoding="async">
+                </div>
+              </div>
+              <div class="cs1-web-panel" role="tabpanel" id="panel-web-3" aria-labelledby="tab-web-3" hidden>
+                <div class="cs1-web-panel-inner">
+                  <img class="cs1-web-shot" src="images/case-study-1/web-order%20details.png" width="1440" height="900" alt="Desktop web: order details" loading="lazy" decoding="async">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs1-section reveal" id="decisions" aria-labelledby="dec-h">
+        <header class="cs1-section-head">
+          <p class="cs1-kicker" id="dec-h">Strategy</p>
+          <h2 class="cs1-h2">Key Decisions</h2>
+        </header>
+        <div class="cs1-dec-grid">
+          <div class="cs1-dec-card">
+            <h3>Education first</h3>
+            <p>Build understanding before conversion for a new product category.</p>
+          </div>
+          <div class="cs1-dec-card">
+            <h3>Progressive disclosure</h3>
+            <p>Three-step flow reduces cognitive load for complex financial decisions.</p>
+          </div>
+          <div class="cs1-dec-card">
+            <h3>Cross-platform parity</h3>
+            <p>Shared patterns across app and web, adapted per platform.</p>
+          </div>
+          <div class="cs1-dec-card">
+            <h3>Workshop-scoped MVP</h3>
+            <p>Discovery directly shaped MVP scope and narrative for flexible lending.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-next" aria-label="Next case study">
+        <div class="container">
+          <p class="cs-next-label">Next project</p>
+          <a href="case-study-2.html">Design System &middot; Enterprise products &rarr;</a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <footer>
+    <div class="container">&copy; 2026 Siwen Fang</div>
+  </footer>
+
+  <script>
+    (function(){
+      var tabs = document.querySelectorAll('.cs1-tab');
+      var panels = document.querySelectorAll('.cs1-web-panel');
+      function activate(i){
+        tabs.forEach(function(t, j){
+          var on = j === i;
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        panels.forEach(function(p, j){
+          p.hidden = j !== i;
+        });
+      }
+      tabs.forEach(function(tab, i){
+        tab.addEventListener('click', function(){ activate(i); });
+      });
+
+      var ro = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+      document.querySelectorAll('.reveal').forEach(function(el){
+        ro.observe(el);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0208">
+  <title>Prediction Market Transfer In/Out Journey — Siwen Fang</title>
+  <meta name="description" content="Case study: Designing the transfer in/out journey for a prediction market — from recycling an existing flow to solving token conversion, edge cases, and shifting requirements across four major iterations.">
+  <meta property="og:title" content="Prediction Market Transfer In/Out Journey — Siwen Fang">
+  <meta property="og:description" content="Designing conversion-aware transfer flows for prediction markets across four major iterations and shifting requirements.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ink:#d5d3d3;--ink-secondary:#b3b3b3;--ink-tertiary:#979797;
+      --surface:#0d0208;--surface-alt:#16020a;--surface-raised:#16020a;
+      --border:#43162a;--border-light:#43162a;
+      --accent:#e6007a;--accent-hover:#ff0187;--accent-subtle:rgba(230,0,122,0.1);--accent-muted:rgba(230,0,122,0.25);
+      --warm:#19ff85;--warm-subtle:rgba(25,255,133,0.08);
+      --font-heading:'Space Mono',monospace;
+      --font-body:'Space Mono',monospace;
+      --text-xs:0.75rem;--text-sm:0.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.25rem;--text-2xl:1.5rem;--text-3xl:2rem;
+      --leading-tight:1.15;--leading-snug:1.35;--leading-normal:1.65;
+      --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;--space-7:3rem;--space-8:4rem;--space-9:6rem;--space-10:8rem;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-full:100px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,0.3);--shadow-md:0 4px 16px rgba(230,0,122,0.15),0 1px 3px rgba(0,0,0,0.3);--shadow-lg:0 12px 40px -8px rgba(230,0,122,0.15);
+      --ease-out:cubic-bezier(0.25,1,0.5,1);--ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+      --dur-fast:150ms;--dur-base:280ms;--dur-slow:500ms;
+      --content-measure:65ch;
+    }
+    html{scroll-behavior:smooth;}
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    section[id]{scroll-margin-top:calc(3px + 4.5rem);}
+    body{font-family:var(--font-body);font-size:var(--text-base);background:var(--surface);color:var(--ink);line-height:var(--leading-normal);-webkit-font-smoothing:antialiased;}
+    body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e6007a 0%,#ff0187 30%,#19ff85 70%,#e6007a 100%);background-size:200% 100%;z-index:200;}
+
+    .skip-link{position:fixed;top:-100%;left:var(--space-4);background:var(--ink);color:var(--surface);padding:var(--space-3) var(--space-5);border-radius:0;font-size:var(--text-sm);font-weight:600;z-index:300;text-decoration:none;}
+    .skip-link:focus{top:3px;outline:2px solid var(--accent);outline-offset:2px;}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+    a.logo:focus-visible,.back-link:focus-visible{border-radius:0;}
+
+    .container{max-width:1080px;margin:0 auto;padding:0 var(--space-7);}
+    img{max-width:100%;height:auto;display:block;}
+
+    .nav-bar{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(13,2,8,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);transition:box-shadow var(--dur-base) var(--ease-out);}
+    .nav-inner{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-7);display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;color:var(--ink);text-decoration:none;padding:var(--space-2) var(--space-2);margin:-var(--space-2);min-height:44px;display:inline-flex;align-items:center;transition:color var(--dur-fast) var(--ease-out);}
+    .logo:hover{color:var(--accent);}
+    .back-link{font-size:var(--text-sm);color:var(--ink-secondary);text-decoration:none;font-weight:500;padding:var(--space-3) var(--space-4);min-height:44px;display:inline-flex;align-items:center;border-radius:0;transition:color var(--dur-fast) var(--ease-out),background var(--dur-fast) var(--ease-out);}
+    .back-link:hover{color:var(--ink);background:var(--accent-subtle);}
+
+    @keyframes heroIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .hero-animate{opacity:0;animation:heroIn var(--dur-slow) var(--ease-out-expo) forwards;}
+    .hero-animate:nth-child(1){animation-delay:0.08s;}
+    .hero-animate:nth-child(2){animation-delay:0.18s;}
+    .hero-animate:nth-child(3){animation-delay:0.3s;}
+    @media (prefers-reduced-motion: reduce){.hero-animate{opacity:1;animation:none;}}
+
+    /* —— Figma Make layout (portfolio tokens) —— */
+    .cs5-hero{position:relative;min-height:86vh;display:flex;align-items:center;justify-content:center;padding:calc(var(--space-10) + 76px) var(--space-7) var(--space-10);overflow:hidden;background-color:var(--surface);background-image:url('images/case-study-5/hero-abstract.svg');background-size:cover;background-position:center 28%;background-repeat:no-repeat;}
+    .cs5-hero::before{content:'';position:absolute;inset:0;z-index:1;opacity:0.055;pointer-events:none;background-image:linear-gradient(rgba(230,0,122,0.35) 1px,transparent 1px),linear-gradient(90deg,rgba(230,0,122,0.35) 1px,transparent 1px);background-size:52px 52px;}
+    .cs5-hero-inner{position:relative;z-index:2;text-align:center;max-width:44rem;margin:0 auto;}
+    .cs5-hero-pill{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:0;border:1px solid var(--accent-muted);background:var(--accent-subtle);margin-bottom:var(--space-6);font-family:var(--font-heading);font-size:var(--text-xs);letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);}
+    .cs5-hero-pill-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:cs5-pulse 2.2s ease-in-out infinite;}
+    @keyframes cs5-pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+    @media(prefers-reduced-motion:reduce){.cs5-hero-pill-dot{animation:none}}
+    .cs5-hero h1{font-family:var(--font-heading);font-size:clamp(0.8rem,3.95vw,3.65rem);font-weight:700;line-height:1.1;letter-spacing:-0.03em;margin-bottom:var(--space-6);color:#fff;white-space:nowrap;}
+    .cs5-hero-accent{color:var(--accent);}
+    .cs5-hero-lede{font-size:var(--text-lg);color:var(--ink-secondary);line-height:1.75;margin:0 auto var(--space-8);max-width:28rem;}
+    .cs5-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-7) var(--space-10);margin-bottom:var(--space-10);}
+    .cs5-stat{text-align:center;max-width:8rem;}
+    .cs5-stat-val{font-family:var(--font-heading);font-size:var(--text-lg);font-weight:700;color:var(--ink);margin-bottom:var(--space-1);}
+    .cs5-stat-label{font-size:var(--text-xs);color:var(--ink-tertiary);letter-spacing:0.06em;text-transform:uppercase;}
+    .cs5-scroll{font-size:var(--text-xs);color:var(--ink-tertiary);letter-spacing:0.15em;}
+    @keyframes cs5-float{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+    .cs5-scroll-arr{display:block;margin:var(--space-2) auto 0;font-size:1.1rem;animation:cs5-float 2.4s ease-in-out infinite;}
+    @media(prefers-reduced-motion:reduce){.cs5-scroll-arr{animation:none}}
+
+    .cs5-chapter-head{text-align:center;padding:var(--space-10) var(--space-6) var(--space-6);max-width:48rem;margin:0 auto;}
+    .cs5-chapter-num{font-family:var(--font-heading);font-size:clamp(3.5rem,14vw,6.5rem);font-weight:700;line-height:0.92;letter-spacing:-0.04em;background:linear-gradient(135deg,var(--accent) 0%,#ff8ec8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:var(--space-3);}
+    .cs5-chapter-sub{font-size:var(--text-xs);letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-tertiary);margin-bottom:var(--space-3);}
+    .cs5-chapter-title{font-family:var(--font-heading);font-size:clamp(1.25rem,3vw,1.75rem);font-weight:700;color:var(--ink);line-height:1.25;}
+
+    .cs5-prose{max-width:42rem;margin:0 auto;padding:0 var(--space-7) var(--space-8);}
+    .cs5-prose p{color:var(--ink-secondary);font-size:1.0625rem;line-height:1.9;margin-bottom:var(--space-5);}
+    .cs5-prose p strong,.cs5-prose .cs5-em{color:var(--accent);font-weight:600;}
+    .cs5-prose .cs5-ink{color:var(--ink);}
+
+    .cs5-msg{border:1px solid var(--border-light);border-radius:var(--radius-lg);background:var(--surface-raised);overflow:hidden;margin:var(--space-8) auto;max-width:36rem;}
+    .cs5-msg-top{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border-light);}
+    .cs5-msg-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-subtle);border:1px solid var(--accent-muted);flex-shrink:0;}
+    .cs5-msg-meta{font-size:var(--text-sm);color:var(--ink);}
+    .cs5-msg-meta span{display:block;font-size:var(--text-xs);color:var(--ink-tertiary);}
+    .cs5-msg-body{padding:var(--space-5) var(--space-6);font-style:italic;color:var(--ink-secondary);line-height:1.85;font-size:1.05rem;}
+
+    .cs5-callout{position:relative;margin:var(--space-10) auto;max-width:48rem;padding:var(--space-8) var(--space-7);border-radius:var(--radius-xl);border:1px solid var(--accent-muted);background:linear-gradient(160deg,var(--accent-subtle),transparent 55%);}
+    .cs5-callout-kicker{font-size:var(--text-xs);letter-spacing:0.2em;text-transform:uppercase;color:var(--accent-muted);margin-bottom:var(--space-5);}
+    .cs5-pill-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);}
+    .cs5-pill{font-family:var(--font-heading);font-size:var(--text-base);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);border:1px solid var(--border-light);color:var(--ink-tertiary);}
+    .cs5-pill--strike{text-decoration:line-through;opacity:0.75;}
+    .cs5-pill--hi{border-color:var(--accent-muted);background:var(--accent-subtle);color:var(--accent-hover);}
+    .cs5-arrow{color:var(--accent-muted);font-size:var(--text-lg);}
+    .cs5-callout p{color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.8;max-width:36rem;}
+
+    .cs5-badge{display:inline-block;font-family:var(--font-heading);font-size:var(--text-xs);letter-spacing:0.06em;padding:var(--space-2) var(--space-3);border-radius:0;border:1px solid var(--border-light);color:var(--ink-tertiary);background:var(--surface-raised);margin-bottom:var(--space-4);}
+    .cs5-badge--em{border-color:var(--accent-muted);color:var(--accent);background:var(--accent-subtle);}
+
+    .cs5-phone-wrap{display:flex;justify-content:center;margin:var(--space-6) 0 var(--space-4);}
+    .cs5-phone{width:min(280px,88vw);padding:11px;border-radius:40px;background:linear-gradient(165deg,#2a2228 0%,#120810 50%,#0a0608 100%);box-shadow:var(--shadow-lg),inset 0 0 0 1px rgba(255,255,255,0.06);}
+    .cs5-phone img{border-radius:30px;width:100%;height:auto;display:block;}
+    .cs5-cap{font-size:var(--text-sm);color:var(--ink-tertiary);text-align:center;max-width:28rem;margin:0 auto var(--space-8);line-height:1.65;}
+
+    .cs5-edge-carousel{width:100%;max-width:56rem;margin:0 auto;}
+    .cs5-carousel-viewport{overflow:hidden;width:100%;}
+    .cs5-carousel-track{display:flex;width:300%;transition:transform 0.45s var(--ease-out);will-change:transform;}
+    @media(prefers-reduced-motion:reduce){.cs5-carousel-track{transition:none}}
+    .cs5-carousel-slide{flex:0 0 33.333333%;min-width:0;padding:0;box-sizing:border-box;}
+    .cs5-carousel-slide .cs5-fig-full{margin:0;}
+    .cs5-carousel-cap{font-size:var(--text-sm);color:var(--ink-secondary);text-align:center;line-height:1.55;margin:var(--space-4) auto 0;max-width:36rem;padding:0 var(--space-2);}
+    .cs5-carousel-dots{display:flex;justify-content:center;align-items:center;gap:var(--space-3);margin-top:var(--space-5);padding:0 0 var(--space-2);}
+    .cs5-carousel-dot{width:10px;height:10px;border-radius:50%;border:none;padding:0;background:var(--border-light);cursor:pointer;transition:background var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out);}
+    .cs5-carousel-dot:hover{background:var(--accent-muted);}
+    .cs5-carousel-dot.is-active{background:var(--accent);transform:scale(1.2);}
+    .cs5-carousel-dot:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+
+    .cs5-fig-label{font-family:var(--font-heading);font-size:var(--text-sm);font-weight:600;letter-spacing:0.06em;color:var(--accent);text-align:center;margin:0 0 var(--space-5);padding:0;background:none;border:none;}
+    .cs5-fig-full{margin:0;padding:0;border-radius:var(--radius-md);overflow:hidden;}
+    .cs5-fig-full img{width:100%;height:auto;display:block;vertical-align:middle;}
+    .cs5-v1-fig{padding-bottom:var(--space-8);}
+
+    .cs5-marquee{overflow:hidden;position:relative;margin:var(--space-6) 0 var(--space-8);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);}
+    .cs5-marquee-track{display:flex;gap:var(--space-3);width:max-content;animation:cs5-marquee 18s linear infinite;}
+    @keyframes cs5-marquee{to{transform:translateX(-50%)}}
+    @media(prefers-reduced-motion:reduce){.cs5-marquee-track{animation:none;flex-wrap:wrap;width:100%;justify-content:center}}
+    .cs5-marquee-track span{flex-shrink:0;padding:var(--space-2) var(--space-4);border-radius:0;border:1px solid rgba(230,0,122,0.22);color:rgba(255,200,220,0.85);font-family:var(--font-heading);font-size:var(--text-xs);}
+
+    .cs5-center{text-align:center;max-width:40rem;margin:0 auto var(--space-8);}
+    .cs5-center .cs5-lead{font-size:var(--text-xs);letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-tertiary);margin-bottom:var(--space-4);}
+    .cs5-center h2{font-family:var(--font-heading);font-size:clamp(1.2rem,2.8vw,1.65rem);font-weight:700;color:var(--ink);line-height:1.4;}
+
+    .cs5-insight{position:relative;margin:var(--space-10) auto;max-width:44rem;padding:var(--space-9) var(--space-7);border-radius:var(--radius-xl);border:1px solid rgba(25,255,133,0.22);background:linear-gradient(145deg,rgba(25,255,133,0.06),transparent 50%);text-align:center;}
+    .cs5-insight-icon{width:52px;height:52px;margin:0 auto var(--space-5);border-radius:var(--radius-md);border:1px solid rgba(25,255,133,0.35);background:rgba(25,255,133,0.08);display:flex;align-items:center;justify-content:center;font-size:1.35rem;}
+    .cs5-insight h3{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;color:var(--ink);margin-bottom:var(--space-4);line-height:1.45;}
+    .cs5-insight .cs5-warm{color:var(--warm);}
+    .cs5-insight p{color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.8;margin-bottom:var(--space-5);max-width:32rem;margin-left:auto;margin-right:auto;}
+    .cs5-insight-fig{margin:var(--space-6) auto 0;padding:0;border-radius:var(--radius-md);overflow:hidden;max-width:100%;}
+    .cs5-insight-fig img{width:100%;height:auto;display:block;vertical-align:middle;}
+    .cs5-v1-fig .cs5-fig-full + .cs5-fig-full{margin-top:var(--space-5);}
+    .cs5-chip-row{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-2);}
+    .cs5-chip{font-size:var(--text-xs);padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);border:1px solid var(--border-light);color:var(--ink-tertiary);font-family:var(--font-heading);}
+    .cs5-chip--ok{border-color:rgba(25,255,133,0.35);color:var(--warm);background:rgba(25,255,133,0.06);}
+
+    .cs5-divider{display:flex;align-items:center;gap:var(--space-4);max-width:36rem;margin:var(--space-10) auto;}
+    .cs5-divider::before,.cs5-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-light),transparent);}
+    .cs5-divider span{font-family:var(--font-heading);font-size:var(--text-xs);letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-tertiary);white-space:nowrap;}
+    .cs5-divider span.cs5-divider-mixedcase{letter-spacing:0.1em;text-transform:none;}
+
+    .cs5-flow{margin:var(--space-6) auto;max-width:36rem;}
+    .cs5-flow-row{display:flex;align-items:flex-start;gap:var(--space-3);margin-bottom:var(--space-4);flex-wrap:wrap;}
+    .cs5-flow-ver{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:700;width:3rem;flex-shrink:0;text-align:right;color:var(--accent);}
+    .cs5-flow-ver--old{color:var(--ink-tertiary);text-decoration:line-through;}
+    .cs5-flow-steps{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);}
+    .cs5-flow-step{font-family:var(--font-heading);font-size:var(--text-xs);padding:var(--space-2) var(--space-2);border-radius:var(--radius-sm);border:1px solid var(--border-light);color:var(--ink-tertiary);background:var(--surface-raised);}
+    .cs5-flow-step--hi{border-color:var(--accent-muted);background:var(--accent-subtle);color:var(--accent);}
+    .cs5-flow-arr{color:var(--border);font-size:var(--text-xs);}
+
+    .cs5-flow-final-figs{margin-top:var(--space-8);max-width:56rem;margin-left:auto;margin-right:auto;padding-bottom:var(--space-2);}
+    .cs5-flow-final-figs .cs5-flow-fig-block + .cs5-flow-fig-block{margin-top:var(--space-8);}
+    .cs5-outcome .cs5-flow-final-figs{margin-top:0;}
+
+    .cs5-split{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);max-width:44rem;margin:var(--space-8) auto;}
+    @media(max-width:720px){.cs5-split{grid-template-columns:1fr}}
+    .cs5-split-card{border:1px solid var(--border-light);border-radius:var(--radius-lg);background:var(--surface-raised);padding:var(--space-5);}
+    .cs5-split-head{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-4);font-family:var(--font-heading);font-size:var(--text-xs);letter-spacing:0.12em;text-transform:uppercase;}
+    .cs5-dot{width:8px;height:8px;border-radius:50%;}
+    .cs5-dot--in{background:var(--warm);}
+    .cs5-dot--out{background:#c084fc;}
+    .cs5-split-label{color:var(--warm);}
+    .cs5-split-label--out{color:#d8b4fe;}
+    .cs5-seq{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--space-2);}
+    .cs5-seq li{padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);border:1px solid var(--border-light);font-size:var(--text-xs);color:var(--ink-secondary);font-family:var(--font-heading);}
+    .cs5-seq li.cs5-seq-hot{border-color:rgba(255,120,160,0.35);background:rgba(230,0,122,0.06);color:#ffb8d4;}
+    .cs5-seq li.cs5-seq-ok{border-color:rgba(25,255,133,0.25);background:rgba(25,255,133,0.05);color:#98ffc8;}
+    .cs5-split-note{font-size:var(--text-xs);margin-top:var(--space-3);color:rgba(255,150,180,0.65);}
+    .cs5-split-note--ok{color:rgba(180,255,210,0.55);}
+
+    .cs5-triple{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);max-width:56rem;margin:var(--space-8) auto;align-items:start;}
+    @media(max-width:900px){.cs5-triple{grid-template-columns:1fr;max-width:20rem}}
+    .cs5-triple-cap{text-align:center;margin-bottom:var(--space-3);}
+    .cs5-triple-cap span{display:block;font-size:var(--text-xs);letter-spacing:0.15em;text-transform:uppercase;color:var(--accent-muted);margin-bottom:var(--space-1);}
+    .cs5-triple-cap em{font-style:normal;font-size:var(--text-sm);color:var(--ink-secondary);}
+
+    .cs5-reflection-art{max-width:36rem;margin:0 auto var(--space-7);padding:0 var(--space-4);opacity:0.95;}
+    .cs5-reflection-art img{width:100%;height:auto;display:block;}
+    .cs5-closing{padding-top:var(--space-10);padding-left:var(--space-7);padding-right:var(--space-7);padding-bottom:calc(var(--space-10) + var(--space-4));text-align:center;position:relative;}
+    .cs5-closing::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(230,0,122,0.04));pointer-events:none;}
+    .cs5-closing-inner{position:relative;z-index:1;max-width:42rem;margin:0 auto;padding:0 var(--space-4);box-sizing:content-box;}
+    @media(min-width:1025px){
+      .cs5-closing-inner{padding-right:max(var(--space-8),4.5rem);}
+    }
+    .cs5-closing-k{font-size:var(--text-xs);letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:var(--space-5);}
+    .cs5-closing-headline-wrap{margin:0 auto var(--space-6);max-width:100%;text-align:center;}
+    .cs5-closing-headline{margin:0;font-family:var(--font-heading);font-size:clamp(1.05rem,2.75vw,2rem);font-weight:700;line-height:1.28;color:#f0ecee;white-space:normal;word-wrap:break-word;overflow-wrap:anywhere;}
+    .cs5-closing-headline .cs5-hero-accent{display:inline;}
+    .cs5-closing-lede{color:#e8e4e6;font-size:1.0625rem;line-height:1.85;margin-bottom:0;max-width:40rem;margin-left:auto;margin-right:auto;}
+
+    .cs-next{border-top:1px solid var(--border-light);padding:var(--space-9) 0 var(--space-9);margin-top:0;text-align:center;}
+    .cs-next-label{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-tertiary);margin-bottom:var(--space-3);}
+    .cs-next a{font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:700;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-4) var(--space-6);border-radius:0;transition:color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);}
+    .cs-next a:hover{color:var(--accent);background:var(--accent-subtle);}
+    footer{text-align:center;padding:var(--space-7);color:var(--ink-tertiary);font-size:var(--text-sm);border-top:1px solid var(--border-light);}
+
+    .cs5-fig-full img,.cs5-phone img,.cs5-insight-fig img{cursor:zoom-in;}
+    .lightbox{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:var(--space-6);opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;cursor:zoom-out;}
+    .lightbox.open{opacity:1;visibility:visible;}
+    .lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:var(--radius-md);}
+    .lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;opacity:0.6;line-height:1;}
+    .lightbox-close:hover{opacity:1;}
+
+    @media(max-width:820px){
+      .container{padding:0 var(--space-5);}
+      .cs5-hero{padding-top:calc(var(--space-9) + 56px);min-height:auto;padding-bottom:var(--space-9);background-position:center 15%;}
+    }
+
+    /* Side navigation — S-curve steppers */
+    .cs5-side-nav{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:90;padding:var(--space-3) 0;}
+    .cs5-side-nav-wrap{position:relative;display:flex;flex-direction:column;align-items:flex-end;}
+    .cs5-side-nav-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+    .cs5-side-nav-svg{position:absolute;right:0;top:6px;bottom:6px;width:46px;height:calc(100% - 12px);pointer-events:none;opacity:0.92;}
+    .cs5-side-nav-svg .cs5-road-path{fill:none;stroke:#7dd3c0;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px rgba(125,211,192,0.25));}
+    .cs5-side-nav-svg .cs5-road-glow{fill:none;stroke:rgba(125,211,192,0.2);stroke-width:4;stroke-linecap:round;}
+    .cs5-side-nav-btn{display:flex;align-items:center;flex-direction:row-reverse;gap:10px;padding:6px 0;background:none;border:none;cursor:pointer;transition:transform var(--dur-base) var(--ease-out);}
+    .cs5-side-nav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:0;}
+    /* S curve: sweep left, shallow right bend at waist, mirror — reads as an “S” down the rail */
+    .cs5-side-nav-btn:nth-child(1){transform:translateX(0);}
+    .cs5-side-nav-btn:nth-child(2){transform:translateX(-12px);}
+    .cs5-side-nav-btn:nth-child(3){transform:translateX(-22px);}
+    .cs5-side-nav-btn:nth-child(4){transform:translateX(-30px);}
+    .cs5-side-nav-btn:nth-child(5){transform:translateX(-14px);}
+    .cs5-side-nav-btn:nth-child(6){transform:translateX(-24px);}
+    .cs5-side-nav-btn:nth-child(7){transform:translateX(-8px);}
+    .cs5-side-nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.18);transition:background var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out),width var(--dur-base),height var(--dur-base);flex-shrink:0;position:relative;z-index:1;}
+    .cs5-side-nav-btn:hover .cs5-side-nav-dot{background:rgba(255,255,255,0.45);}
+    .cs5-side-nav-btn.active .cs5-side-nav-dot{width:11px;height:11px;background:var(--accent);box-shadow:0 0 14px rgba(230,0,122,0.45);}
+    .cs5-side-nav-label{font-family:var(--font-heading);font-size:0.65rem;letter-spacing:0.06em;color:transparent;transition:color var(--dur-base) var(--ease-out);white-space:nowrap;max-width:0;overflow:hidden;opacity:0;}
+    @media(min-width:1100px){
+      .cs5-side-nav-label{max-width:8rem;opacity:1;}
+      .cs5-side-nav-btn:hover .cs5-side-nav-label,.cs5-side-nav-btn.active .cs5-side-nav-label{color:rgba(245,240,242,0.88);}
+      .cs5-side-nav-btn:not(:hover):not(.active) .cs5-side-nav-label{color:transparent;}
+    }
+    @media(max-width:1024px){
+      .cs5-side-nav{display:none;}
+    }
+
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity 0.65s var(--ease-out),transform 0.65s var(--ease-out);}
+    .reveal.visible{opacity:1;transform:translateY(0);}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header class="nav-bar">
+    <nav class="nav-inner" aria-label="Case study navigation">
+      <a href="index.html" class="logo">Siwen</a>
+      <a href="index.html#work" class="back-link">&larr; All Projects</a>
+    </nav>
+  </header>
+
+  <nav class="cs5-side-nav" aria-label="On this page" id="cs5-side-nav">
+    <div class="cs5-side-nav-wrap">
+      <svg class="cs5-side-nav-svg" viewBox="0 0 52 280" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+        <defs>
+          <marker id="cs5-road-end" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto" markerUnits="strokeWidth">
+            <path d="M0 0 L7 3.5 L0 7 Z" fill="#7dd3c0"/>
+          </marker>
+        </defs>
+        <!-- Storyline road: winding S + arrow (mint, reference-inspired) -->
+        <path class="cs5-road-glow" d="M40 6 C12 30 12 70 40 102 C12 134 12 174 40 206 C14 234 14 252 36 262 L36 274"/>
+        <path class="cs5-road-path" d="M40 6 C12 30 12 70 40 102 C12 134 12 174 40 206 C14 234 14 252 36 262 L36 274" marker-end="url(#cs5-road-end)"/>
+      </svg>
+      <div class="cs5-side-nav-inner">
+        <button type="button" class="cs5-side-nav-btn active" data-section="hero" aria-label="Intro"><span class="cs5-side-nav-label">Intro</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+        <button type="button" class="cs5-side-nav-btn" data-section="ch1" aria-label="01 Plot twist"><span class="cs5-side-nav-label">01 Plot twist</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+        <button type="button" class="cs5-side-nav-btn" data-section="ch2" aria-label="02 Requirements"><span class="cs5-side-nav-label">02 Requirements</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+        <button type="button" class="cs5-side-nav-btn" data-section="ch3" aria-label="03 Conversion"><span class="cs5-side-nav-label">03 Conversion</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+        <button type="button" class="cs5-side-nav-btn" data-section="ch4" aria-label="04 Edge cases"><span class="cs5-side-nav-label">04 Edge cases</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+        <button type="button" class="cs5-side-nav-btn" data-section="ch5" aria-label="05 Outcome"><span class="cs5-side-nav-label">05 Outcome</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+        <button type="button" class="cs5-side-nav-btn" data-section="reflection" aria-label="Reflection"><span class="cs5-side-nav-label">Reflection</span><span class="cs5-side-nav-dot" aria-hidden="true"></span></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <article aria-labelledby="case-title">
+
+      <section class="cs5-hero" id="hero" aria-labelledby="case-title">
+        <div class="cs5-hero-inner">
+          <p class="cs5-hero-pill hero-animate"><span class="cs5-hero-pill-dot" aria-hidden="true"></span> Prediction market &middot; transfer in/out</p>
+          <h1 id="case-title" class="hero-animate">Design with ambiguity</h1>
+          <p class="cs5-hero-lede hero-animate">From a &ldquo;simple UX change&rdquo; to multi-stakeholder, high-detail execution</p>
+          <div class="cs5-stats hero-animate" role="list">
+            <div class="cs5-stat" role="listitem"><div class="cs5-stat-val">2 Weeks</div><div class="cs5-stat-label">Timeline</div></div>
+            <div class="cs5-stat" role="listitem"><div class="cs5-stat-val">5+ Pivots</div><div class="cs5-stat-label">Req changes</div></div>
+            <div class="cs5-stat" role="listitem"><div class="cs5-stat-val">No PRD</div><div class="cs5-stat-label">Documentation</div></div>
+          </div>
+          <p class="cs5-scroll hero-animate" aria-hidden="true">Scroll<span class="cs5-scroll-arr" aria-hidden="true">&#8595;</span></p>
+        </div>
+      </section>
+
+      <section class="reveal" aria-labelledby="ch1">
+        <header class="cs5-chapter-head" id="ch1">
+          <div class="cs5-chapter-num" aria-hidden="true">01</div>
+          <p class="cs5-chapter-sub">The plot twist</p>
+          <h2 class="cs5-chapter-title">It started with a Friday call.</h2>
+        </header>
+        <div class="cs5-prose">
+          <div class="cs5-msg reveal">
+            <div class="cs5-msg-top">
+              <div class="cs5-msg-avatar" aria-hidden="true"></div>
+              <div class="cs5-msg-meta">Product Manager<span>Friday, 4:47 PM</span></div>
+            </div>
+            <blockquote class="cs5-msg-body">&ldquo;We need users to move funds between their exchange account and the prediction market. No PRD yet. Can we start exploring?&rdquo;</blockquote>
+          </div>
+          <div class="cs5-callout reveal">
+            <p class="cs5-callout-kicker">The first strategic move</p>
+            <div class="cs5-pill-row">
+              <span class="cs5-pill cs5-pill--strike">Deposit</span>
+              <span class="cs5-pill cs5-pill--strike">Withdraw</span>
+              <span class="cs5-arrow" aria-hidden="true">&rarr;</span>
+              <span class="cs5-pill cs5-pill--hi">Transfer In</span>
+              <span class="cs5-pill cs5-pill--hi">Transfer Out</span>
+            </div>
+            <p>Repackaging the mental model. From the prediction market&rsquo;s perspective, &ldquo;Transfer In&rdquo; is technically a withdraw from the exchange &mdash; but users don&rsquo;t need to know that.</p>
+          </div>
+        </div>
+        <div class="container cs5-v1-fig reveal">
+          <p class="cs5-fig-label">V1 &mdash; Recycled from exchange</p>
+          <figure class="cs5-fig-full">
+            <img src="images/case-study-5/Version%201.png" alt="V1: recycled deposit and withdraw flow — full journey" width="1600" height="900" loading="lazy" decoding="async">
+          </figure>
+        </div>
+      </section>
+
+      <section class="cs-section-alt reveal" aria-labelledby="ch2">
+        <header class="cs5-chapter-head" id="ch2">
+          <div class="cs5-chapter-num" aria-hidden="true">02</div>
+          <p class="cs5-chapter-sub">Requirement changes</p>
+          <h2 class="cs5-chapter-title">The ground kept shifting.</h2>
+        </header>
+        <div class="container">
+          <div class="cs5-marquee reveal" aria-hidden="true">
+            <div class="cs5-marquee-track">
+              <span>Support USDC + USDT</span><span>Add token conversion</span><span>Support USDG</span><span>Logic change</span><span>New constraint</span><span>Scope change</span><span>API update</span>
+              <span>Support USDC + USDT</span><span>Add token conversion</span><span>Support USDG</span><span>Logic change</span><span>New constraint</span><span>Scope change</span><span>API update</span>
+            </div>
+          </div>
+          <div class="cs5-prose">
+            <p class="reveal">First change: <span class="cs5-em">two stablecoins &mdash; USDC and USDT</span>. Then: transfer via USDT, USDC, or USDG with <span class="cs5-em">automatic conversion</span> during transfer.</p>
+          </div>
+        </div>
+        <div class="container cs5-v1-fig reveal">
+          <p class="cs5-fig-label">V2 &mdash; Added token selection step</p>
+          <figure class="cs5-fig-full">
+            <img src="images/case-study-5/Version%202.png" alt="V2: added token selection step — full journey" width="1600" height="900" loading="lazy" decoding="async">
+          </figure>
+        </div>
+      </section>
+
+      <section class="reveal" aria-labelledby="ch3">
+        <header class="cs5-chapter-head" id="ch3">
+          <div class="cs5-chapter-num" aria-hidden="true">03</div>
+          <p class="cs5-chapter-sub">The conversion problem</p>
+        </header>
+        <div class="container">
+          <div class="cs5-prose">
+            <div class="cs5-center reveal">
+              <h2>How do we visually convey a <span class="cs5-hero-accent">&ldquo;conversion&rdquo;</span> happening instantly during a transfer?</h2>
+            </div>
+            <p class="reveal">I had some UI exploration, trying to solve the issue via clear UI. E.g. in the preview page, on top of the page, highlighting the token switch.</p>
+            <div class="cs5-insight reveal">
+              <div class="cs5-insight-icon" aria-hidden="true">&#9889;</div>
+              <h3>Show the conversion at the <span class="cs5-warm">first step</span>,<br>not the last.</h3>
+              <p>Unifying input amount and surfacing conversion there helps users understand when they start &mdash; not at preview when it&rsquo;s too late to reconsider.</p>
+              <figure class="cs5-insight-fig">
+                <img src="images/case-study-5/UX%20enhance.png" alt="UX enhancement: conversion shown at the first step" width="1600" height="900" loading="lazy" decoding="async">
+              </figure>
+              <div class="cs5-chip-row">
+                <span class="cs5-chip">Unified title: &ldquo;Transfer USDG&rdquo;</span>
+                <span class="cs5-chip">Same UI for In &amp; Out</span>
+                <span class="cs5-chip cs5-chip--ok">Less dev effort</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="container cs5-v1-fig reveal">
+          <p class="cs5-fig-label">Design exploration</p>
+          <figure class="cs5-fig-full">
+            <img src="images/case-study-5/UI%20exploration.png" alt="UI exploration" width="1600" height="900" loading="lazy" decoding="async">
+          </figure>
+        </div>
+        <div class="container">
+          <div class="cs5-divider reveal" role="presentation"><span class="cs5-divider-mixedcase">Week 1 &ldquo;final&rdquo; flow</span></div>
+          <div class="cs5-flow reveal">
+            <div class="cs5-flow-row">
+              <span class="cs5-flow-ver cs5-flow-ver--old">V1</span>
+              <div class="cs5-flow-steps">
+                <span class="cs5-flow-step">Select Token</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Input Amount</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Preview</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Confirm</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Status</span>
+              </div>
+            </div>
+            <div class="cs5-flow-row">
+              <span class="cs5-flow-ver cs5-flow-ver--old">V2</span>
+              <div class="cs5-flow-steps">
+                <span class="cs5-flow-step cs5-flow-step--hi">Select Token</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Input Amount</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Preview</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Confirm</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Status</span>
+              </div>
+            </div>
+            <div class="cs5-flow-row">
+              <span class="cs5-flow-ver">Final</span>
+              <div class="cs5-flow-steps">
+                <span class="cs5-flow-step cs5-flow-step--hi">Input + Token + Conversion</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Preview</span><span class="cs5-flow-arr">&rarr;</span><span class="cs5-flow-step">Status</span>
+              </div>
+            </div>
+          </div>
+          <div class="cs5-flow-final-figs reveal">
+            <div class="cs5-flow-fig-block">
+              <p class="cs5-fig-label">Transfer In</p>
+              <figure class="cs5-fig-full">
+                <img src="images/case-study-5/Version%204-transfer%20in.png" alt="Version 4: Transfer In flow — screen titles and steps" width="1600" height="900" loading="lazy" decoding="async">
+              </figure>
+            </div>
+            <div class="cs5-flow-fig-block">
+              <p class="cs5-fig-label">Transfer Out</p>
+              <figure class="cs5-fig-full">
+                <img src="images/case-study-5/Version%204-transfer%20out.png" alt="Version 4: Transfer Out flow — screen titles and steps" width="1600" height="900" loading="lazy" decoding="async">
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-section-alt reveal" aria-labelledby="ch4">
+        <header class="cs5-chapter-head" id="ch4">
+          <div class="cs5-chapter-num" aria-hidden="true">04</div>
+          <p class="cs5-chapter-sub">Week 2 &mdash; Edge cases</p>
+          <h2 class="cs5-chapter-title">Changes are always expected in crypto.</h2>
+        </header>
+        <div class="container">
+          <div class="cs5-prose">
+            <p class="reveal">Problem: conversion triggers at different stages for Transfer In vs Transfer Out &mdash; two different experiences in one surface.</p>
+          </div>
+          <div class="cs5-split reveal">
+            <div class="cs5-split-card">
+              <div class="cs5-split-head"><span class="cs5-dot cs5-dot--in" aria-hidden="true"></span><span class="cs5-split-label">Transfer In</span></div>
+              <ol class="cs5-seq">
+                <li>User confirms</li>
+                <li class="cs5-seq-hot">Conversion starts</li>
+                <li>Passkey auth</li>
+                <li>Transfer complete</li>
+              </ol>
+              <p class="cs5-split-note">Conversion before auth = risky</p>
+            </div>
+            <div class="cs5-split-card">
+              <div class="cs5-split-head"><span class="cs5-dot cs5-dot--out" aria-hidden="true"></span><span class="cs5-split-label cs5-split-label--out">Transfer Out</span></div>
+              <ol class="cs5-seq">
+                <li>User confirms</li>
+                <li>Passkey auth</li>
+                <li class="cs5-seq-ok">Conversion starts</li>
+                <li>Transfer complete</li>
+              </ol>
+              <p class="cs5-split-note cs5-split-note--ok">Auth before conversion = safer</p>
+            </div>
+          </div>
+          <div class="cs5-v1-fig reveal">
+            <p class="cs5-fig-label">The loading page dilemma</p>
+            <div class="cs5-edge-carousel" id="cs5-edge-carousel">
+              <div class="cs5-carousel-viewport" aria-roledescription="carousel">
+                <div class="cs5-carousel-track">
+                  <div class="cs5-carousel-slide">
+                    <figure class="cs5-fig-full">
+                      <img src="images/case-study-5/Edge%20case%201.png" alt="Edge case 1: add the error page only" width="1600" height="900" loading="lazy" decoding="async">
+                    </figure>
+                    <p class="cs5-carousel-cap">Add the error page only</p>
+                  </div>
+                  <div class="cs5-carousel-slide">
+                    <figure class="cs5-fig-full">
+                      <img src="images/case-study-5/Edge%20case%202.png" alt="Edge case 2: loading friction" width="1600" height="900" loading="lazy" decoding="async">
+                    </figure>
+                    <p class="cs5-carousel-cap">Add a loading friction</p>
+                  </div>
+                  <div class="cs5-carousel-slide">
+                    <figure class="cs5-fig-full">
+                      <img src="images/case-study-5/Edge%20case%203.png" alt="Edge case 3: split preview into convert and transfer" width="1600" height="900" loading="lazy" decoding="async">
+                    </figure>
+                    <p class="cs5-carousel-cap">Split preview into 2 steps (convert &gt; transfer)</p>
+                  </div>
+                </div>
+              </div>
+              <div class="cs5-carousel-dots" role="group" aria-label="Three design directions">
+                <button type="button" class="cs5-carousel-dot is-active" aria-label="Edge case 1: add the error page only" aria-current="true"></button>
+                <button type="button" class="cs5-carousel-dot" aria-label="Edge case 2: add a loading friction"></button>
+                <button type="button" class="cs5-carousel-dot" aria-label="Edge case 3: split preview into two steps"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="reveal" aria-labelledby="ch5">
+        <header class="cs5-chapter-head" id="ch5">
+          <div class="cs5-chapter-num" aria-hidden="true">05</div>
+          <p class="cs5-chapter-sub">The outcome</p>
+        </header>
+        <div class="container cs5-outcome cs5-v1-fig">
+          <div class="cs5-flow-final-figs reveal">
+            <div class="cs5-flow-fig-block">
+              <p class="cs5-fig-label">Transfer In</p>
+              <figure class="cs5-fig-full">
+                <img src="images/case-study-5/final%20version%20transfer%20in.png" alt="Final version: Transfer In" width="1600" height="900" loading="lazy" decoding="async">
+              </figure>
+            </div>
+            <div class="cs5-flow-fig-block">
+              <p class="cs5-fig-label">Transfer Out</p>
+              <figure class="cs5-fig-full">
+                <img src="images/case-study-5/final%20version%20transfer%20out.png" alt="Final version: Transfer Out" width="1600" height="900" loading="lazy" decoding="async">
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs5-closing cs-section-alt reveal" id="reflection" aria-labelledby="closing-heading">
+        <div class="cs5-closing-inner">
+          <div class="cs5-reflection-art reveal" aria-hidden="true">
+            <img src="images/case-study-5/reflection-abstract.svg" alt="" width="800" height="120" loading="lazy" decoding="async">
+          </div>
+          <p class="cs5-closing-k" id="closing-heading">Reflection</p>
+          <div class="cs5-closing-headline-wrap">
+            <h2 class="cs5-closing-headline">Designing in ambiguity <span class="cs5-hero-accent">is a skill.</span></h2>
+          </div>
+          <p class="cs5-closing-lede">Good design isn&rsquo;t only the final UI. It&rsquo;s navigating uncertainty, trading off under pressure, and giving users clarity while the product is still figuring itself out.</p>
+        </div>
+      </section>
+
+      <section class="cs-next" aria-label="Next case study">
+        <div class="container">
+          <p class="cs-next-label">Next project</p>
+          <a href="case-study-6.html">Withdraw Status in the Dynamic Island &rarr;</a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <footer><div class="container">&copy; 2026 Siwen Fang</div></footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Zoomed image">
+    <button type="button" class="lightbox-close" aria-label="Close">&times;</button>
+    <img src="" alt="">
+  </div>
+
+  <script>
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -36px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el){
+      var siblings = el.parentElement.querySelectorAll('.reveal');
+      el.style.transitionDelay = (Array.prototype.indexOf.call(siblings, el) * 70) + 'ms';
+      observer.observe(el);
+    });
+
+    (function(){
+      var root = document.getElementById('cs5-edge-carousel');
+      if(!root) return;
+      var track = root.querySelector('.cs5-carousel-track');
+      var dots = root.querySelectorAll('.cs5-carousel-dot');
+      var n = dots.length;
+      if(!track || !n) return;
+      function go(i){
+        i = ((i % n) + n) % n;
+        track.style.transform = 'translateX(-' + (i * 100 / n) + '%)';
+        dots.forEach(function(d, j){
+          var on = j === i;
+          d.classList.toggle('is-active', on);
+          if(on) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current');
+        });
+      }
+      dots.forEach(function(dot, i){ dot.addEventListener('click', function(){ go(i); }); });
+    })();
+
+    (function(){
+      var ids = ['hero','ch1','ch2','ch3','ch4','ch5','reflection'];
+      var buttons = document.querySelectorAll('.cs5-side-nav-btn');
+      if(!buttons.length) return;
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function updateSideNav(){
+        var mid = window.innerHeight * 0.42;
+        var best = null;
+        var bestDist = Infinity;
+        ids.forEach(function(id){
+          var el = document.getElementById(id);
+          if(!el) return;
+          var r = el.getBoundingClientRect();
+          if(r.bottom < 80 || r.top > window.innerHeight - 40) return;
+          var c = (r.top + r.bottom) / 2;
+          var d = Math.abs(c - mid);
+          if(d < bestDist){ bestDist = d; best = id; }
+        });
+        if(best){
+          buttons.forEach(function(btn){
+            btn.classList.toggle('active', btn.getAttribute('data-section') === best);
+          });
+        }
+      }
+      buttons.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var id = btn.getAttribute('data-section');
+          var el = document.getElementById(id);
+          if(el) el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        });
+      });
+      window.addEventListener('scroll', updateSideNav, { passive: true });
+      window.addEventListener('resize', updateSideNav);
+      updateSideNav();
+    })();
+
+    (function(){
+      var lb = document.getElementById('lightbox');
+      if(!lb) return;
+      var lbImg = lb.querySelector('img');
+      function openLb(img){
+        lbImg.src = img.src;
+        lbImg.alt = img.alt || '';
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLb(){
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+      document.querySelectorAll('.cs5-fig-full img, .cs5-phone img, .cs5-insight-fig img').forEach(function(img){
+        img.addEventListener('click', function(){ openLb(img); });
+      });
+      lb.addEventListener('click', closeLb);
+      lb.querySelector('.lightbox-close').addEventListener('click', function(e){ e.stopPropagation(); closeLb(); });
+      lbImg.addEventListener('click', function(e){ e.stopPropagation(); closeLb(); });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && lb.classList.contains('open')) closeLb(); });
+    })();
+  </script>
+</body>
+</html>

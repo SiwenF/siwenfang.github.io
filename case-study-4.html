@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0208">
+  <title>From Ambiguity to Confidence: Optimizing the E2E Withdrawal Journey — Siwen Fang</title>
+  <meta name="description" content="Case study: Competitive journey mapping vs Kraken and Coinbase, pixel-level flow deconstruction, and a withdrawal experience redesigned for global scale.">
+  <meta property="og:title" content="From Ambiguity to Confidence: Optimizing the E2E Withdrawal Journey — Siwen Fang">
+  <meta property="og:description" content="Benchmarking OKX against Kraken and Coinbase. Pixel-level craft for a global withdrawal experience.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    /* —— Design tokens (extract) —— */
+    :root{
+      --ink:#d5d3d3;--ink-secondary:#b3b3b3;--ink-tertiary:#979797;
+      --surface:#0d0208;--surface-alt:#16020a;--surface-raised:#16020a;
+      --border:#43162a;--border-light:#43162a;
+      --accent:#e6007a;--accent-hover:#ff0187;--accent-subtle:rgba(230,0,122,0.1);--accent-muted:rgba(230,0,122,0.25);
+      --warm:#19ff85;--warm-subtle:rgba(25,255,133,0.08);
+      --trust-tint:rgba(230,0,122,0.08);
+      --font-heading:'Space Mono',monospace;
+      --font-body:'Space Mono',monospace;
+      --text-xs:0.75rem;--text-sm:0.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.25rem;--text-2xl:1.5rem;--text-3xl:2rem;
+      --leading-tight:1.15;--leading-snug:1.35;--leading-normal:1.65;
+      --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;--space-7:3rem;--space-8:4rem;--space-9:6rem;--space-10:8rem;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-full:100px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,0.3);--shadow-md:0 4px 16px rgba(230,0,122,0.15),0 1px 3px rgba(0,0,0,0.3);--shadow-lg:0 12px 40px -8px rgba(0,0,0,0.3);
+      --ease-out:cubic-bezier(0.25,1,0.5,1);--ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+      --dur-fast:150ms;--dur-base:280ms;--dur-slow:500ms;
+      --content-measure:65ch;
+    }
+    html{scroll-behavior:smooth;}
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    section[id]{scroll-margin-top:calc(3px + 4.5rem);}
+    body{font-family:var(--font-body);font-size:var(--text-base);background:var(--surface);color:var(--ink);line-height:var(--leading-normal);-webkit-font-smoothing:antialiased;}
+    body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e6007a 0%,#ff0187 30%,#19ff85 70%,#e6007a 100%);background-size:200% 100%;z-index:200;}
+
+    /* Audit: skip link + focus */
+    .skip-link{position:fixed;top:-100%;left:var(--space-4);background:var(--ink);color:var(--surface);padding:var(--space-3) var(--space-5);border-radius:0;font-size:var(--text-sm);font-weight:600;z-index:300;text-decoration:none;}
+    .skip-link:focus{top:3px;outline:2px solid var(--accent);outline-offset:2px;}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+    a.logo:focus-visible,.back-link:focus-visible{border-radius:0;}
+
+    .container{max-width:1080px;margin:0 auto;padding:0 var(--space-7);}
+    img,video{max-width:100%;height:auto;display:block;}
+
+    /* Nav — polish: touch targets */
+    .nav-bar{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(13,2,8,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);transition:box-shadow var(--dur-base) var(--ease-out);}
+    .nav-inner{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-7);display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;color:var(--ink);text-decoration:none;padding:var(--space-2) var(--space-2);margin:-var(--space-2);min-height:44px;display:inline-flex;align-items:center;transition:color var(--dur-fast) var(--ease-out);}
+    .logo:hover{color:var(--accent);}
+    .back-link{font-size:var(--text-sm);color:var(--ink-secondary);text-decoration:none;font-weight:500;padding:var(--space-3) var(--space-4);min-height:44px;display:inline-flex;align-items:center;border-radius:0;transition:color var(--dur-fast) var(--ease-out),background var(--dur-fast) var(--ease-out);}
+    .back-link:hover{color:var(--ink);background:var(--accent-subtle);}
+
+    /* Hero — animate: staggered entrance */
+    @keyframes heroIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .hero-animate{opacity:0;animation:heroIn var(--dur-slow) var(--ease-out-expo) forwards;}
+    .hero-animate:nth-child(1){animation-delay:0.08s;}
+    .hero-animate:nth-child(2){animation-delay:0.18s;}
+    .hero-animate:nth-child(3){animation-delay:0.3s;}
+    .hero-animate:nth-child(4){animation-delay:0.42s;}
+    @media (prefers-reduced-motion: reduce){
+      .hero-animate{opacity:1;animation:none;}
+    }
+
+    .cs-hero{padding:calc(var(--space-10) + 80px) 0 var(--space-9);}
+    .cs-hero-tag{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:var(--space-4);display:inline-block;}
+    .cs-hero h1{font-family:var(--font-heading);font-size:clamp(2rem,4vw,var(--text-3xl));font-weight:700;line-height:var(--leading-tight);margin-bottom:var(--space-4);max-width:22em;letter-spacing:-0.02em;}
+    .cs-hero-subtitle{font-size:var(--text-lg);color:var(--ink-secondary);max-width:var(--content-measure);line-height:1.75;margin-bottom:var(--space-7);}
+
+    /* Colorize + polish: device frame */
+    .hero-phone-wrap{display:flex;justify-content:center;margin-top:var(--space-7);padding:var(--space-4) 0;}
+    .iphone-frame{
+      position:relative;
+      width:min(300px,86vw);
+      padding:11px;
+      border-radius:44px;
+      background:linear-gradient(165deg,#3d3d41 0%,#1c1c1e 45%,#0a0a0b 100%);
+      box-shadow:
+        var(--shadow-lg),
+        0 0 0 1px rgba(255,255,255,0.06) inset,
+        0 -1px 0 rgba(255,255,255,0.04) inset;
+      transition:transform var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);
+    }
+    .hero-phone-wrap:hover .iphone-frame{transform:translateY(-2px);box-shadow:0 20px 48px -12px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.06) inset;}
+    @media (prefers-reduced-motion: reduce){.hero-phone-wrap:hover .iphone-frame{transform:none;}}
+    .iphone-frame::after{
+      content:'';
+      position:absolute;
+      top:14px;
+      left:50%;
+      transform:translateX(-50%);
+      width:88px;
+      height:26px;
+      background:#0a0a0b;
+      border-radius:20px;
+      z-index:2;
+      box-shadow:0 2px 8px rgba(0,0,0,0.35);
+    }
+    .iphone-screen{
+      position:relative;
+      z-index:1;
+      border-radius:34px;
+      overflow:hidden;
+      background:var(--surface);
+      aspect-ratio:9/19.5;
+    }
+    .cs-hero-video{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
+      vertical-align:middle;
+      background:var(--surface);
+    }
+
+    .cs-key-issues{padding:var(--space-8) 0 0;margin:var(--space-7) 0 0;text-align:left;}
+    .cs-key-issues h2.cs-section-label{margin:0 0 var(--space-5) 0;font-size:var(--text-sm);font-weight:600;line-height:inherit;}
+    .cs-key-issues-figure{margin:0 0 var(--space-6);}
+    .cs-key-issues-figure img{width:100%;height:auto;display:block;}
+    .process-step .cs-step-figure{margin:var(--space-5) 0 0;}
+    .process-step .cs-step-figure:first-of-type{margin-top:var(--space-6);}
+    .cs-step-figure img{width:100%;height:auto;display:block;}
+    .cs-key-issues-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      max-width:var(--content-measure);
+    }
+    .cs-key-issues-list li{
+      position:relative;
+      padding-left:var(--space-6);
+      margin-bottom:var(--space-3);
+      color:var(--ink-secondary);
+      font-size:var(--text-base);
+      line-height:1.65;
+    }
+    .cs-key-issues-list li:last-child{margin-bottom:0;}
+    .cs-key-issues-list li::before{
+      content:'';
+      position:absolute;
+      left:0;
+      top:0.65em;
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:var(--accent);
+    }
+
+    .cs-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-6);padding:var(--space-7) 0;border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light);margin:var(--space-7) 0;}
+    .cs-meta dt{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-tertiary);margin-bottom:var(--space-2);}
+    .cs-meta dd{font-size:var(--text-sm);font-weight:500;color:var(--ink);}
+
+    .cs-section{padding:var(--space-9) 0;}
+    .cs-section-alt{background:var(--surface-alt);padding:var(--space-9) 0;margin:0 calc(-50vw + 50%);padding-left:calc(50vw - 50%);padding-right:calc(50vw - 50%);}
+    .cs-section-label{font-family:var(--font-heading);font-size:var(--text-sm);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:var(--space-5);}
+    .cs-section h2{font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:700;line-height:var(--leading-tight);margin-bottom:var(--space-5);letter-spacing:-0.02em;}
+    .cs-section p,.cs-section-alt p{color:var(--ink-secondary);font-size:var(--text-base);line-height:1.82;margin-bottom:var(--space-4);max-width:var(--content-measure);}
+    .cs-intro-wide{margin-bottom:var(--space-8)!important;max-width:var(--content-measure);font-size:1.0625rem;}
+    .cs-section h3{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-3);margin-top:var(--space-6);letter-spacing:-0.01em;color:var(--ink);}
+
+    .cs-image{background:linear-gradient(180deg,var(--surface-alt) 0%,var(--surface) 100%);border:1px dashed var(--border);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--space-6);color:var(--ink-tertiary);font-size:var(--text-sm);font-family:var(--font-heading);overflow:hidden;min-height:200px;transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);}
+    .cs-image:hover{border-color:var(--accent-muted);background:var(--accent-subtle);}
+    .cs-image--wide{aspect-ratio:16/9;}
+    .cs-image img{width:100%;height:100%;object-fit:cover;}
+
+    /* Timeline — colorize line + animate dots */
+    .process-timeline{margin:var(--space-8) 0;position:relative;padding-left:44px;}
+    .process-timeline::before{
+      content:'';
+      position:absolute;
+      left:15px;top:0;bottom:0;width:2px;
+      border-radius:2px;
+      background:linear-gradient(180deg,var(--accent) 0%,var(--accent-muted) 45%,var(--border) 100%);
+    }
+    .process-step{position:relative;padding-bottom:var(--space-9);}
+    .process-step:last-child{padding-bottom:0;}
+    .process-dot{
+      position:absolute;left:-44px;top:0;
+      width:34px;height:34px;border-radius:50%;
+      background:var(--accent);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-family:var(--font-heading);font-size:var(--text-xs);font-weight:700;z-index:1;
+      box-shadow:0 0 0 4px var(--surface),0 4px 12px rgba(43,107,94,0.28);
+      transition:transform var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);
+    }
+    .process-step:hover .process-dot{transform:scale(1.05);box-shadow:0 0 0 4px var(--surface),0 6px 16px rgba(43,107,94,0.35);}
+    @media (prefers-reduced-motion: reduce){.process-step:hover .process-dot{transform:none;}}
+    .process-step h3{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2);margin-top:0;}
+    .process-step p{color:var(--ink-secondary);font-size:var(--text-base);line-height:1.82;margin-bottom:var(--space-4);max-width:var(--content-measure);}
+
+    .quote-card{background:var(--warm-subtle);border-left:3px solid var(--warm);border-radius:0 var(--radius-md) var(--radius-md) 0;padding:var(--space-5) var(--space-6);margin:var(--space-5) 0;}
+    .quote-card p{color:var(--ink);font-style:italic;margin-bottom:var(--space-2);max-width:none;font-size:1.05rem;line-height:1.65;}
+    .quote-card cite{font-size:var(--text-sm);color:var(--ink-secondary);font-style:normal;font-weight:500;}
+
+    .pain-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);margin:var(--space-6) 0;}
+    .pain-card{
+      background:var(--surface-raised);
+      border:1px solid var(--border-light);
+      border-radius:var(--radius-md);
+      padding:var(--space-5);
+      transition:transform var(--dur-base) var(--ease-out),border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);
+    }
+    .pain-card:hover{
+      transform:translateY(-2px);
+      border-color:var(--accent-muted);
+      box-shadow:var(--shadow-md);
+    }
+    @media (prefers-reduced-motion: reduce){.pain-card:hover{transform:none;}}
+    .pain-card-header{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3);}
+    .pain-severity{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;padding:4px 12px;border-radius:0;}
+    .pain-severity--high{background:#fdf0ee;color:#a0281a;}
+    .pain-severity--medium{background:var(--accent-subtle);color:var(--accent-hover);}
+    .pain-card h4{font-family:var(--font-heading);font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2);}
+    .pain-card p{font-size:var(--text-sm);color:var(--ink-secondary);line-height:1.65;margin-bottom:0;max-width:none;}
+
+    .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin:var(--space-7) 0 var(--space-8);}
+    .result-card{
+      background:var(--surface-raised);
+      border:1px solid var(--border-light);
+      border-radius:var(--radius-lg);
+      padding:var(--space-6) var(--space-5);
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      transition:transform var(--dur-base) var(--ease-out),border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);
+    }
+    .result-card:hover{
+      transform:translateY(-2px);
+      border-color:var(--accent-muted);
+      box-shadow:var(--shadow-md);
+    }
+    @media (prefers-reduced-motion: reduce){.result-card:hover{transform:none;}}
+    .result-card-label{
+      font-family:var(--font-heading);
+      font-size:var(--text-xs);
+      font-weight:600;
+      letter-spacing:0.06em;
+      text-transform:uppercase;
+      color:var(--ink-tertiary);
+      margin:0 0 var(--space-3);
+      max-width:16rem;
+      line-height:1.35;
+    }
+    .result-card .number{
+      font-family:var(--font-heading);
+      font-size:var(--text-3xl);
+      font-weight:700;
+      color:var(--accent);
+      line-height:1;
+      margin:0 0 var(--space-3);
+    }
+    .result-card-desc{
+      font-size:var(--text-sm);
+      color:var(--ink-secondary);
+      margin:0;
+      max-width:17rem;
+      line-height:1.55;
+    }
+    .outcome-image{
+      margin:var(--space-6) 0 0;
+    }
+    .outcome-image img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+
+    .cs-next{border-top:1px solid var(--border-light);padding:var(--space-8) 0;text-align:center;}
+    .cs-next-label{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-tertiary);margin-bottom:var(--space-3);}
+    .cs-next a{
+      font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:700;color:var(--ink);text-decoration:none;
+      display:inline-flex;align-items:center;gap:var(--space-2);
+      padding:var(--space-4) var(--space-6);
+      border-radius:0;
+      transition:color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);
+    }
+    .cs-next a:hover{color:var(--accent);background:var(--accent-subtle);}
+    footer{text-align:center;padding:var(--space-7);color:var(--ink-tertiary);font-size:var(--text-sm);border-top:1px solid var(--border-light);}
+
+    @media(max-width:820px){
+      .container{padding:0 var(--space-5);}
+      .cs-meta{grid-template-columns:1fr 1fr;gap:var(--space-4);}
+      .pain-grid{grid-template-columns:1fr;}
+      .result-grid{grid-template-columns:1fr;}
+      .cs-hero{padding-top:calc(var(--space-9) + 60px);}
+      .iphone-frame{width:min(260px,82vw);}
+    }
+
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity 0.65s var(--ease-out),transform 0.65s var(--ease-out);}
+    .reveal.visible{opacity:1;transform:translateY(0);}
+    @media(prefers-reduced-motion:reduce){
+      .reveal{opacity:1;transform:none;transition:none;}
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header class="nav-bar">
+    <nav class="nav-inner" aria-label="Case study navigation">
+      <a href="index.html" class="logo">Siwen</a>
+      <a href="index.html#work" class="back-link">&larr; All Projects</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <article id="withdrawal-case-study" aria-labelledby="case-title">
+
+      <section class="cs-hero" aria-labelledby="case-title">
+        <div class="container">
+          <span class="cs-hero-tag hero-animate">Competitive UX &middot; Global Scale</span>
+          <h1 id="case-title" class="hero-animate">From Ambiguity to Confidence: Optimizing the E2E Withdrawal Journey</h1>
+          <p class="cs-hero-subtitle hero-animate">A forensic gap analysis of the legacy flow revealed that drop-offs weren&rsquo;t just due to UI friction, but a fundamental breakdown in trust. Users faced &ldquo;black-box&rdquo; processing, ambiguous network selections leading to high churn and a surge in &ldquo;Where are my funds?&rdquo; support tickets.</p>
+          <div class="hero-phone-wrap hero-animate">
+            <div class="iphone-frame" role="group" aria-label="Product demo on iPhone">
+              <div class="iphone-screen">
+                <video
+                  class="cs-hero-video"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  preload="metadata"
+                  aria-label="Screen recording of the withdrawal flow"
+                >
+                  <source src="videos/withdrawal-hero.mp4" type="video/mp4">
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="container">
+        <dl class="cs-meta" aria-label="Project details">
+          <div><dt>Role</dt><dd>Lead Designer &amp; Researcher</dd></div>
+          <div><dt>Timeline</dt><dd>3 months</dd></div>
+          <div><dt>Team</dt><dd>1 PM, 4 Engineers</dd></div>
+          <div><dt>Deliverables</dt><dd>Gap analysis, Pixel audit, UI</dd></div>
+        </dl>
+
+        <section class="cs-key-issues reveal" aria-labelledby="key-issues-heading">
+          <h2 class="cs-section-label" id="key-issues-heading">Key issues</h2>
+          <figure class="cs-key-issues-figure">
+            <!-- Figma node 14-63422 — images/case-study-4/Before revamp.png (cropped, no frame title) -->
+            <img
+              src="images/case-study-4/Before%20revamp.png?v=2"
+              alt="Key issues in the legacy withdrawal flow before revamp"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+          <ul class="cs-key-issues-list">
+            <li>Unclear rules (limits, fees, processing time)</li>
+            <li>Cognitive overload</li>
+            <li>Poor status</li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="cs-section" aria-labelledby="process-heading">
+        <div class="container">
+          <p class="cs-section-label reveal" id="process-heading">From Benchmark to Build</p>
+          <p class="reveal cs-intro-wide">Withdrawals are the most high-anxiety touchpoint in the crypto ecosystem. For a global exchange, this journey was plagued by high drop-off rates due to &ldquo;Information Overload,&rdquo; confusing network fee structures, and a lack of transparency regarding blockchain confirmation times. Users felt a sense of &ldquo;loss of control&rdquo; once they hit the submit button, leading to a high volume of urgent support tickets and brand distrust.</p>
+
+          <div class="process-timeline">
+
+            <div class="process-step reveal">
+              <div class="process-dot" aria-hidden="true">1</div>
+              <h3>Journey Mapping &amp; Competitive Benchmarking</h3>
+              <p>I documented every step from intent to confirmation on web and app, then recreated parallel journeys for Kraken and Coinbase. The output was a single view: same task, three products—so stakeholders could see where OKX added friction, where copy was ambiguous, and where global users (different locales, networks, and compliance expectations) would struggle.</p>
+              <figure class="cs-step-figure">
+                <img
+                  src="images/case-study-4/Benchmark_select%20network.png?v=2"
+                  alt="Journey comparison benchmark: network selection across OKX, Kraken, and Coinbase"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </figure>
+              <figure class="cs-step-figure">
+                <img
+                  src="images/case-study-4/Benchmark_select%20asset.png?v=2"
+                  alt="Journey comparison benchmark: OKX vs Kraken vs Coinbase — asset selection"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </figure>
+              <figure class="cs-step-figure">
+                <img
+                  src="images/case-study-4/Benchmark_input.png?v=2"
+                  alt="Journey comparison benchmark: input and confirmation patterns"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </figure>
+            </div>
+
+            <div class="process-step reveal">
+              <div class="process-dot" aria-hidden="true">2</div>
+              <h3>Gap Analysis &amp; Pixel-Level Deconstruction</h3>
+              <p>The benchmark exposed a structural gap: Kraken and Coinbase split the journey into focused steps (select token, select network, input amount, input address), while OKX condensed almost everything into one dense page. I audited hierarchy, spacing, component states, and copy at pixel level to pinpoint where overload happened. In the legacy layout, token/network controls, warnings, fees, and secondary details competed in the same visual field, spacing was tight, and redundant information reduced readability at the exact moment users needed confidence.</p>
+
+              <div class="pain-grid">
+                <div class="pain-card">
+                  <div class="pain-card-header">
+                    <span class="pain-severity pain-severity--high">Gap vs competitors</span>
+                  </div>
+                  <h4>Step structure vs. single-screen overload</h4>
+                  <p>Kraken and Coinbase progressively disclosed decisions across steps. OKX packed selection, validation, and confirmation cues into one screen, increasing scan burden and hesitation.</p>
+                </div>
+                <div class="pain-card">
+                  <div class="pain-card-header">
+                    <span class="pain-severity pain-severity--high">Gap vs competitors</span>
+                  </div>
+                  <h4>Token/network controls were hard to parse</h4>
+                  <p>Critical choices sat too close together with limited spacing and weak grouping, so users struggled to distinguish token selection from network selection and associated risks.</p>
+                </div>
+                <div class="pain-card">
+                  <div class="pain-card-header">
+                    <span class="pain-severity pain-severity--medium">Global scale</span>
+                  </div>
+                  <h4>Redundant and competing information</h4>
+                  <p>Repeated helper text and mixed-priority content diluted key actions. Important data (fees, limits, and timing) did not stand out clearly from secondary details.</p>
+                </div>
+                <div class="pain-card">
+                  <div class="pain-card-header">
+                    <span class="pain-severity pain-severity--medium">Trust &amp; status</span>
+                  </div>
+                  <h4>Low readability under high-stakes decisions</h4>
+                  <p>Under stress, dense copy and tight vertical rhythm made the page feel unclear. The issue was not one missing element, but cumulative friction from layout, hierarchy, and copy.</p>
+                </div>
+              </div>
+
+              <div class="quote-card reveal">
+                <p>&ldquo;The competitive walkthrough made it obvious: we weren&rsquo;t failing on one screen—we were failing on the cumulative weight of small decisions.&rdquo;</p>
+                <cite>— Workshop synthesis (internal)</cite>
+              </div>
+            </div>
+
+            <div class="process-step reveal">
+              <div class="process-dot" aria-hidden="true">3</div>
+              <h3>Redesign for Global, Scalable Users</h3>
+              <p>I redesigned the flow with progressive disclosure and clearer hierarchy: consistent components across locales, translation-ready copy, and resilient states for edge cases. Security stayed strict, but the experience feels <strong>protective, not punitive</strong>, with clearer confirmations and status visibility throughout.</p>
+              <figure class="cs-step-figure">
+                <img
+                  src="images/case-study-4/Comparison_select%20token.png?v=1"
+                  alt="Redesign comparison for token selection flow"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </figure>
+              <figure class="cs-step-figure">
+                <img
+                  src="images/case-study-4/Comparison_input.png?v=1"
+                  alt="Redesign comparison for input and confirmation flow"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </figure>
+              <figure class="cs-step-figure">
+                <img
+                  src="images/case-study-4/Details%20status.png?v=1"
+                  alt="Scalable detail patterns in the redesigned withdrawal flow"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </figure>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <div class="cs-section-alt">
+        <div class="container">
+          <p class="cs-section-label reveal">Outcome</p>
+
+          <figure class="outcome-image reveal">
+            <img
+              src="images/case-study-4/Updated%20version.png?v=2"
+              alt="Updated withdrawal flow summary after redesign"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+            >
+          </figure>
+
+          <div class="result-grid">
+            <div class="result-card reveal">
+              <p class="result-card-label">Withdrawal orders submitted</p>
+              <div class="number">108k&rarr;116k</div>
+              <p class="result-card-desc">Daily volume before vs. after revamp.</p>
+            </div>
+            <div class="result-card reveal">
+              <p class="result-card-label">Conversion rate</p>
+              <div class="number">+5%</div>
+              <p class="result-card-desc">Overall withdrawal conversion: 63.7% before &rarr; 68.64% after.</p>
+            </div>
+            <div class="result-card reveal">
+              <p class="result-card-label">Users submitting orders</p>
+              <div class="number">+7.4%</div>
+              <p class="result-card-desc">More withdrawal users completing submission vs. pre-revamp baseline.</p>
+            </div>
+          </div>
+
+          <div class="quote-card reveal">
+            <p>&ldquo;Before, the interface felt opaque and restrictive; now, the clear hierarchy and real-time status updates make me feel completely in control of my assets.&rdquo;</p>
+            <cite>— Post-launch user feedback</cite>
+          </div>
+        </div>
+      </div>
+
+      <section class="cs-next" aria-label="Next case study">
+        <div class="container">
+          <p class="cs-next-label">Next project</p>
+          <a href="case-study-5.html">Prediction Market Transfer In/Out &rarr;</a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <footer><div class="container">&copy; 2026 Siwen Fang</div></footer>
+
+  <script>
+    (function(){
+      var v = document.querySelector('.cs-hero-video');
+      if (v && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        v.removeAttribute('autoplay');
+        v.pause();
+      }
+    })();
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -36px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el){
+      var siblings = el.parentElement.querySelectorAll('.reveal');
+      el.style.transitionDelay = (Array.prototype.indexOf.call(siblings, el) * 70) + 'ms';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>

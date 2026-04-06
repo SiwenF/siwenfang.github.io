@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0208">
+  <title>OKX Flexible Loan Journey Revamp — Siwen Fang</title>
+  <meta name="description" content="Case study: A data-driven redesign that unified single and multiple collateral loan flows, resulting in significant improvements across key metrics.">
+  <meta property="og:title" content="OKX Flexible Loan Journey Revamp — Siwen Fang">
+  <meta property="og:description" content="Data-driven redesign unifying loan flows. 9.8% conversion increase, 65% large volume growth.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ink:#d5d3d3;--ink-secondary:#b3b3b3;--ink-tertiary:#979797;
+      --surface:#0d0208;--surface-alt:#16020a;--surface-raised:#16020a;
+      --border:#43162a;--border-light:#43162a;
+      --accent:#e6007a;--accent-hover:#ff0187;--accent-subtle:rgba(230,0,122,0.1);--accent-muted:rgba(230,0,122,0.25);
+      --warm:#19ff85;--warm-subtle:rgba(25,255,133,0.08);
+      --red:#c0392b;--red-subtle:rgba(192,57,43,0.08);--green:#27864a;--green-subtle:rgba(39,134,74,0.08);
+      --font-heading:'Space Mono',monospace;
+      --font-body:'Space Mono',monospace;
+      --text-xs:0.75rem;--text-sm:0.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.25rem;--text-2xl:1.5rem;--text-3xl:2rem;
+      --leading-tight:1.15;--leading-snug:1.35;--leading-normal:1.65;
+      --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-5:1.5rem;--space-6:2rem;--space-7:3rem;--space-8:4rem;--space-9:6rem;--space-10:8rem;
+      --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-full:100px;
+      --shadow-sm:0 1px 2px rgba(0,0,0,0.3);--shadow-md:0 4px 16px rgba(230,0,122,0.15),0 1px 3px rgba(0,0,0,0.3);--shadow-lg:0 12px 40px -8px rgba(0,0,0,0.3);
+      --ease-out:cubic-bezier(0.25,1,0.5,1);--ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+      --dur-fast:150ms;--dur-base:280ms;--dur-slow:500ms;
+      --content-measure:65ch;
+    }
+    html{scroll-behavior:smooth;}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+    section[id]{scroll-margin-top:calc(3px + 4.5rem);}
+    body{font-family:var(--font-body);font-size:var(--text-base);background:var(--surface);color:var(--ink);line-height:var(--leading-normal);-webkit-font-smoothing:antialiased;}
+    body::before{content:'';position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e6007a 0%,#ff0187 30%,#19ff85 70%,#e6007a 100%);background-size:200% 100%;z-index:200;}
+
+    .skip-link{position:fixed;top:-100%;left:var(--space-4);background:var(--ink);color:var(--surface);padding:var(--space-3) var(--space-5);border-radius:0;font-size:var(--text-sm);font-weight:600;z-index:300;text-decoration:none;}
+    .skip-link:focus{top:3px;outline:2px solid var(--accent);outline-offset:2px;}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+
+    img,video{max-width:100%;height:auto;display:block;}
+
+    /* ── Nav ── */
+    .nav-bar{position:fixed;top:3px;left:0;right:0;z-index:100;background:rgba(13,2,8,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-light);}
+    .nav-inner{max-width:1080px;margin:0 auto;padding:var(--space-4) var(--space-7);display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;color:var(--ink);text-decoration:none;padding:var(--space-2);margin:calc(-1 * var(--space-2));min-height:44px;display:inline-flex;align-items:center;transition:color var(--dur-fast) var(--ease-out);}
+    .logo:hover{color:var(--accent);}
+    .back-link{font-size:var(--text-sm);color:var(--ink-secondary);text-decoration:none;font-weight:500;padding:var(--space-3) var(--space-4);min-height:44px;display:inline-flex;align-items:center;border-radius:0;transition:color var(--dur-fast) var(--ease-out),background var(--dur-fast) var(--ease-out);}
+    .back-link:hover{color:var(--ink);background:var(--accent-subtle);}
+
+    /* ── Side Nav Dots (curved arc) ── */
+    .side-nav{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+    .side-nav-btn{display:flex;align-items:center;gap:12px;padding:8px 0;background:none;border:none;cursor:pointer;outline:none;}
+    .side-nav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:0;}
+    .side-nav-btn:nth-child(1){transform:translateX(0px);}
+    .side-nav-btn:nth-child(2){transform:translateX(-18px);}
+    .side-nav-btn:nth-child(3){transform:translateX(-30px);}
+    .side-nav-btn:nth-child(4){transform:translateX(-36px);}
+    .side-nav-btn:nth-child(5){transform:translateX(-30px);}
+    .side-nav-btn:nth-child(6){transform:translateX(-18px);}
+    .side-nav-btn:nth-child(7){transform:translateX(0px);}
+    .side-nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.3s var(--ease-out);flex-shrink:0;}
+    .side-nav-btn:hover .side-nav-dot{background:rgba(255,255,255,0.5);}
+    .side-nav-btn.active .side-nav-dot{width:12px;height:12px;background:var(--accent);}
+    .side-nav-label{font-family:var(--font-heading);font-size:var(--text-xs);color:transparent;transition:all 0.3s var(--ease-out);white-space:nowrap;letter-spacing:0.02em;}
+    .side-nav-btn:hover .side-nav-label{color:rgba(255,255,255,0.6);}
+    .side-nav-btn.active .side-nav-label{color:#fff;opacity:1;}
+
+    /* ── Full-viewport Sections ── */
+    .cs-panel{min-height:100vh;display:flex;align-items:center;padding:var(--space-9) 24px;position:relative;overflow:hidden;}
+    .cs-panel .container{max-width:1080px;margin:0 auto;padding:0 var(--space-7);width:100%;}
+
+    /* Hero special padding for nav */
+    .cs-panel--hero{padding-top:calc(var(--space-10) + 80px);}
+
+    /* Hero entrance animation */
+    @keyframes heroIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .hero-animate{opacity:0;animation:heroIn var(--dur-slow) var(--ease-out-expo) forwards;}
+    .hero-animate:nth-child(1){animation-delay:0.08s;}
+    .hero-animate:nth-child(2){animation-delay:0.18s;}
+    .hero-animate:nth-child(3){animation-delay:0.30s;}
+    .hero-animate:nth-child(4){animation-delay:0.42s;}
+    @media(prefers-reduced-motion:reduce){.hero-animate{opacity:1;animation:none;}}
+
+    /* Hero */
+    .cs-hero-inner{text-align:center;margin:0 auto;}
+    .cs-hero-tag{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.16em;color:var(--accent);margin-bottom:var(--space-4);display:block;text-align:center;}
+    .cs-hero-title{font-family:var(--font-heading);font-size:clamp(2.8rem,6vw,4.2rem);font-weight:700;line-height:1.1;margin-bottom:var(--space-5);}
+    .cs-hero-title .highlight{color:var(--accent);}
+    .cs-hero-subtitle{font-size:var(--text-lg);color:var(--ink-secondary);max-width:640px;line-height:1.75;margin:0 auto var(--space-7);}
+    .cs-hero-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-5);font-size:var(--text-sm);color:var(--ink-tertiary);}
+    .cs-hero-meta span{display:inline-flex;align-items:center;}
+    .cs-hero-arrow{margin-top:var(--space-8);color:rgba(255,255,255,0.15);font-size:var(--text-2xl);animation:bounce 2s infinite;}
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+    /* Section labels + headings */
+    .cs-section-label{font-family:var(--font-heading);font-size:var(--text-sm);font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:#E6007A !important;margin-bottom:var(--space-4);}
+    .cs-panel h2{font-family:var(--font-heading);font-size:clamp(1.6rem,3vw,var(--text-3xl));font-weight:700;line-height:var(--leading-tight);margin-bottom:var(--space-5);letter-spacing:-0.02em;}
+    .cs-panel p{color:var(--ink-secondary);font-size:var(--text-base);line-height:1.82;margin-bottom:var(--space-4);max-width:var(--content-measure);}
+    .cs-panel h3{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-3);margin-top:var(--space-6);letter-spacing:-0.01em;}
+
+    /* Content frame — bordered rounded box for images / embedded content */
+    .content-frame{border-radius:var(--radius-xl);overflow:hidden;border:1px solid rgba(255,255,255,0.08);background:#000;transition:border-color var(--dur-base) var(--ease-out);}
+    .content-frame:hover{border-color:rgba(255,255,255,0.15);}
+    .content-frame--placeholder{display:flex;align-items:center;justify-content:center;color:var(--ink-tertiary);font-size:var(--text-sm);font-family:var(--font-heading);padding:var(--space-6);}
+    .content-frame--wide{width:100%;aspect-ratio:16/9;}
+    .content-frame--tall{width:100%;aspect-ratio:8/10;}
+    .content-frame--auto{width:100%;}
+    .content-frame img{width:100%;height:100%;object-fit:cover;}
+
+    /* Problem list */
+    .problem-list{list-style:none;counter-reset:problem;margin:var(--space-6) 0;max-width:720px;}
+    .problem-list li{counter-increment:problem;position:relative;padding:var(--space-5) var(--space-5) var(--space-5) var(--space-8);border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:var(--space-4);background:var(--surface-raised);color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.7;transition:border-color var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out);}
+    .problem-list li:hover{border-color:var(--accent-muted);transform:translateY(-1px);}
+    .problem-list li::before{content:counter(problem);position:absolute;left:var(--space-5);top:var(--space-5);font-family:var(--font-heading);font-weight:700;font-size:var(--text-lg);color:var(--accent);line-height:1;}
+
+    /* Auto-height panel (for longer sections) */
+    .cs-panel--auto{min-height:auto;padding-top:var(--space-9);padding-bottom:var(--space-9);}
+
+    /* Direction block */
+    .direction-block{margin-top:var(--space-7);padding-top:var(--space-7);border-top:1px solid var(--border-light);}
+    .direction-block h3{font-family:var(--font-heading);font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-3);margin-top:0;letter-spacing:-0.01em;}
+    .direction-block p{color:var(--ink-secondary);font-size:var(--text-base);line-height:1.82;margin-bottom:var(--space-4);max-width:var(--content-measure);}
+    .direction-block .content-frame{margin-top:var(--space-5);}
+
+    /* Quote / insight card */
+    .quote-card{background:var(--warm-subtle);border-left:3px solid var(--warm);border-radius:0 var(--radius-md) var(--radius-md) 0;padding:var(--space-5) var(--space-6);margin:var(--space-5) 0;}
+    .quote-card p{color:var(--ink);font-style:italic;margin-bottom:0;max-width:none;font-size:1.05rem;line-height:1.65;}
+
+    /* Key decision callout */
+    .key-decision{background:var(--accent-subtle);border-left:3px solid var(--accent);border-radius:0 var(--radius-md) var(--radius-md) 0;padding:var(--space-5) var(--space-6);margin:var(--space-6) 0;}
+    .key-decision strong{font-family:var(--font-heading);color:var(--accent);font-size:var(--text-sm);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:var(--space-2);}
+    .key-decision p{color:var(--ink);margin-bottom:0;max-width:none;}
+
+    /* Before/After comparison cards */
+    .comparison{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);margin:var(--space-7) 0;}
+    .comparison-card{border-radius:var(--radius-md);padding:var(--space-6);border:1px solid var(--border-light);transition:transform var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);}
+    .comparison-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .comparison-card--before{background:var(--red-subtle);border-color:rgba(192,57,43,0.2);}
+    .comparison-card--after{background:var(--green-subtle);border-color:rgba(39,134,74,0.2);}
+    .comparison-label{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:var(--space-4);}
+    .comparison-card--before .comparison-label{color:var(--red);}
+    .comparison-card--after .comparison-label{color:var(--green);}
+
+    /* Impact metric cards */
+    .data-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-5);margin:var(--space-7) 0;}
+    .data-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-xl);padding:var(--space-7) var(--space-5);text-align:center;transition:transform var(--dur-base) var(--ease-out),border-color var(--dur-base) var(--ease-out),box-shadow var(--dur-base) var(--ease-out);}
+    .data-card:hover{transform:translateY(-2px);border-color:var(--accent-muted);box-shadow:var(--shadow-md);}
+    .data-card .number{font-family:var(--font-heading);font-size:clamp(2rem,4vw,3rem);font-weight:700;color:var(--accent);line-height:1;margin-bottom:var(--space-3);}
+    .data-card h4{font-family:var(--font-heading);font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2);color:var(--ink);}
+    .data-card p{font-size:var(--text-sm);color:var(--ink-tertiary);line-height:1.6;margin-bottom:0;max-width:none;}
+
+    /* Next project */
+    .cs-next{border-top:1px solid var(--border-light);padding:var(--space-8) 0;text-align:center;}
+    .cs-next-label{font-family:var(--font-heading);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-tertiary);margin-bottom:var(--space-3);}
+    .cs-next a{font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:700;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-4) var(--space-6);border-radius:0;transition:color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out);}
+    .cs-next a:hover{color:var(--accent);background:var(--accent-subtle);}
+    footer{text-align:center;padding:var(--space-7);color:var(--ink-tertiary);font-size:var(--text-sm);border-top:1px solid var(--border-light);}
+
+    /* Lightbox */
+    .content-frame img{cursor:zoom-in;}
+    .lightbox{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:var(--space-6);opacity:0;visibility:hidden;transition:opacity 0.3s var(--ease-out),visibility 0.3s;cursor:zoom-out;}
+    .lightbox.open{opacity:1;visibility:visible;}
+    .lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:var(--radius-md);transform:scale(0.92);transition:transform 0.3s var(--ease-out-expo);}
+    .lightbox.open img{transform:scale(1);}
+    .lightbox-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;padding:8px;opacity:0.6;transition:opacity 0.2s;}
+    .lightbox-close:hover{opacity:1;}
+
+    /* Section entrance animation */
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s var(--ease-out),transform 0.7s var(--ease-out);}
+    .reveal.visible{opacity:1;transform:translateY(0);}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}.hero-animate{opacity:1;animation:none;}}
+
+    /* Responsive */
+    @media(max-width:1024px){
+      .side-nav{display:none;}
+    }
+    @media(max-width:820px){
+      .cs-panel .container{padding:0 var(--space-5);}
+      .cs-panel{padding:var(--space-8) var(--space-4);min-height:auto;}
+      .cs-panel--hero{min-height:100vh;}
+      .comparison{grid-template-columns:1fr;}
+      .data-grid{grid-template-columns:1fr;}
+      .problem-list li{padding-left:var(--space-7);}
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <header class="nav-bar">
+    <nav class="nav-inner" aria-label="Case study navigation">
+      <a href="index.html" class="logo">Siwen</a>
+      <a href="index.html#work" class="back-link">&larr; All Projects</a>
+    </nav>
+  </header>
+
+  <!-- Side navigation dots -->
+  <nav class="side-nav" aria-label="Section navigation" id="sideNav">
+    <button class="side-nav-btn active" data-section="hero"><span class="side-nav-label">Overview</span><span class="side-nav-dot"></span></button>
+    <button class="side-nav-btn" data-section="problem"><span class="side-nav-label">Problem</span><span class="side-nav-dot"></span></button>
+    <button class="side-nav-btn" data-section="original"><span class="side-nav-label">Original Design</span><span class="side-nav-dot"></span></button>
+    <button class="side-nav-btn" data-section="exploration"><span class="side-nav-label">Exploration</span><span class="side-nav-dot"></span></button>
+    <button class="side-nav-btn" data-section="final"><span class="side-nav-label">Final Design</span><span class="side-nav-dot"></span></button>
+    <button class="side-nav-btn" data-section="comparison"><span class="side-nav-label">Before &amp; After</span><span class="side-nav-dot"></span></button>
+    <button class="side-nav-btn" data-section="impact"><span class="side-nav-label">Impact</span><span class="side-nav-dot"></span></button>
+  </nav>
+
+  <main id="main">
+    <article>
+
+      <!-- HERO -->
+      <section id="hero" class="cs-panel cs-panel--hero">
+        <div class="container">
+          <div class="cs-hero-inner">
+            <h1 class="cs-hero-title hero-animate">OKX Flexible Loan Journey <span class="highlight">Revamp</span></h1>
+            <p class="cs-hero-subtitle hero-animate">A data-driven redesign that unified single and multiple collateral loan flows, resulting in significant improvements across key metrics.</p>
+            <div class="cs-hero-meta hero-animate">
+              <span>Role: Product Designer</span>
+              <span>&bull;</span>
+              <span>Platform: Mobile App</span>
+              <span>&bull;</span>
+              <span>Duration: 3 Months</span>
+            </div>
+            <div class="cs-hero-arrow hero-animate" aria-hidden="true">&darr;</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 01 — PROBLEM -->
+      <section id="problem" class="cs-panel">
+        <div class="container">
+          <p class="cs-section-label reveal">01 &mdash; Discovery</p>
+          <h2 class="reveal">Identifying the Problem</h2>
+          <p class="reveal">Through data analysis and user research, I identified five critical problems in the existing loan flow that were directly impacting conversion rates and user satisfaction.</p>
+
+          <ol class="problem-list">
+            <li class="reveal">Multiple collateral loan had a significantly lower conversion rate: over 1/5 of single collateral loan's conversion rate</li>
+            <li class="reveal">Multiple collateral loan had significantly longer time to convert: almost 3.5x longer time</li>
+            <li class="reveal">7.53% of all users (over 1,300 users) applied for both single collateral loan and multiple collateral loan</li>
+            <li class="reveal">&gt;80% customer complaints were about basic loan subscriptions and repayment related issues</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 02 — ORIGINAL DESIGN -->
+      <section id="original" class="cs-panel">
+        <div class="container">
+          <p class="cs-section-label reveal">02 &mdash; Original Design</p>
+          <h2 class="reveal">Existing Subscription Flow</h2>
+          <p class="reveal">The original design separated single collateral and multiple collateral loan flows, creating a fragmented user experience with lower conversion rates.</p>
+
+          <div class="content-frame content-frame--auto reveal">
+            <img
+              src="images/case-study-3/Orignal%20flow.png"
+              alt="Original single and multiple collateral loan flows"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
+
+          <div class="quote-card reveal" style="margin-top:var(--space-6);">
+            <p>Most users have 2 Single collateral loan orders at a time. It indicates that multiple collateral loan is in demand</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 — EXPLORATION -->
+      <section id="exploration" class="cs-panel cs-panel--auto">
+        <div class="container">
+          <p class="cs-section-label reveal">03 &mdash; Exploration</p>
+          <h2 class="reveal">Design Exploration</h2>
+          <p class="reveal">Three design directions were explored, each testing a different hypothesis on how to unify the loan experience.</p>
+
+          <!-- Direction 1 -->
+          <div class="direction-block reveal">
+            <h3>Direction 1 &mdash; Unified Entry Point</h3>
+            <p>Merge single and multi-collateral into one flow. The core user action is identical; the only variable is the number of collateral assets selected.</p>
+            <div class="key-decision">
+              <strong>Hypothesis</strong>
+              <p>One consistent mental model eliminates the need to choose a loan &ldquo;type&rdquo; upfront, reducing decision fatigue.</p>
+            </div>
+            <div class="content-frame content-frame--auto reveal">
+              <img src="images/case-study-3/Direction%201.png" alt="Direction 1 — Unified entry point design" width="1600" height="900" loading="lazy" decoding="async">
+            </div>
+          </div>
+
+          <!-- Direction 2 -->
+          <div class="direction-block reveal">
+            <h3>Direction 2 &mdash; Goal-First Chunking</h3>
+            <p>Flip the flow: let users state what they want to borrow first, then figure out collateral. Splits the cognitive task into two focused steps.</p>
+            <div class="key-decision">
+              <strong>Hypothesis</strong>
+              <p>Leading with the borrowing target creates forward momentum and reduces upfront friction.</p>
+            </div>
+            <div class="content-frame content-frame--auto reveal">
+              <img src="images/case-study-3/Direction%202.png" alt="Direction 2 — Goal-first chunking design" width="1600" height="900" loading="lazy" decoding="async">
+            </div>
+          </div>
+
+          <!-- Direction 3 -->
+          <div class="direction-block reveal">
+            <h3>Direction 3 &mdash; Progressive Disclosure</h3>
+            <p>Start with the user&rsquo;s top currency pre-selected. Multi-asset selection only appears when they tap &ldquo;+ Add more collateral,&rdquo; keeping the primary screen clean.</p>
+            <div class="key-decision">
+              <strong>Hypothesis</strong>
+              <p>Exposing complexity only on demand keeps the default experience simple while supporting power users.</p>
+            </div>
+            <div class="content-frame content-frame--auto reveal">
+              <img src="images/case-study-3/Direction%203.png" alt="Direction 3 — Progressive disclosure design" width="1600" height="900" loading="lazy" decoding="async">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 — FINAL DESIGN -->
+      <section id="final" class="cs-panel">
+        <div class="container">
+          <p class="cs-section-label reveal">04 &mdash; Final Design</p>
+          <h2 class="reveal">Complete Flow</h2>
+          <p class="reveal">The revamped design unifies the loan experience &mdash; users can now seamlessly borrow with single or multiple collateral in one streamlined flow.</p>
+
+          <div class="content-frame content-frame--auto reveal" style="background:#fff;">
+            <img src="images/case-study-3/Flexible%20loan%20revamp.png" alt="Final design — Unified flexible loan flow" width="1600" height="900" loading="lazy" decoding="async">
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 — BEFORE & AFTER -->
+      <section id="comparison" class="cs-panel">
+        <div class="container">
+          <p class="cs-section-label reveal">05 &mdash; Comparison</p>
+          <h2 class="reveal">Before &amp; After</h2>
+          <p class="reveal">A side-by-side comparison of the original fragmented experience versus the unified redesign.</p>
+
+          <div class="comparison">
+            <div class="comparison-card comparison-card--before reveal">
+              <div class="comparison-label">Before</div>
+              <p style="color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.7;margin-bottom:0;max-width:none;">
+                Separate flows for single and multi-collateral loans. Complex navigation between loan types. Users confused by redundant interfaces. Low discoverability of multi-collateral option.
+              </p>
+            </div>
+            <div class="comparison-card comparison-card--after reveal">
+              <div class="comparison-label">After</div>
+              <p style="color:var(--ink-secondary);font-size:var(--text-sm);line-height:1.7;margin-bottom:0;max-width:none;">
+                Unified subscription flow for all loan types. Streamlined collateral selection with pre-filled defaults. Clear LTV indicators and risk information. One-tap access to borrow with any collateral combination.
+              </p>
+            </div>
+          </div>
+
+          <div class="content-frame content-frame--auto reveal" style="margin-top:var(--space-5);">
+            <img src="images/case-study-3/before%20%26%20after.png" alt="Before and after comparison of loan flows" width="1600" height="900" loading="lazy" decoding="async">
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 — IMPACT -->
+      <section id="impact" class="cs-panel">
+        <div class="container">
+          <p class="cs-section-label reveal">06 &mdash; Impact</p>
+          <h2 class="reveal">Product Impact</h2>
+
+          <div class="data-grid">
+            <div class="data-card reveal">
+              <div class="number">9.8%</div>
+              <h4>Conversion Rate Increase</h4>
+              <p>From 5.10% to 5.60%</p>
+            </div>
+            <div class="data-card reveal">
+              <div class="number">11.66%</div>
+              <h4>More Daily Borrowers</h4>
+              <p>From 677 to 756 daily active borrowers</p>
+            </div>
+            <div class="data-card reveal">
+              <div class="number">65%</div>
+              <h4>Large Volume Order Growth</h4>
+              <p>From 46 to 76 large volume orders</p>
+            </div>
+          </div>
+
+          <div class="content-frame content-frame--auto reveal" style="margin-top:var(--space-5);">
+            <img src="images/case-study-3/data%20matrix.png" alt="Data matrix — Detailed impact metrics" width="1600" height="900" loading="lazy" decoding="async">
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-next" aria-label="Next case study">
+        <div class="container">
+          <p class="cs-next-label">Next project</p>
+          <a href="case-study-4.html">E2E Withdrawal Journey &rarr;</a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <!-- Lightbox overlay -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Image zoom">
+    <button class="lightbox-close" aria-label="Close">&times;</button>
+    <img src="" alt="">
+  </div>
+
+  <footer><div class="container">&copy; 2026 Siwen Fang</div></footer>
+
+  <script>
+    (function(){
+      /* ── Side nav: scroll tracking ── */
+      var sectionIds = ['hero','problem','original','exploration','final','comparison','impact'];
+      var buttons = document.querySelectorAll('.side-nav-btn');
+      var activeId = 'hero';
+
+      var sectionObserver = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            activeId = entry.target.id;
+            buttons.forEach(function(btn){
+              btn.classList.toggle('active', btn.getAttribute('data-section') === activeId);
+            });
+          }
+        });
+      },{ threshold:0.3 });
+
+      sectionIds.forEach(function(id){
+        var el = document.getElementById(id);
+        if(el) sectionObserver.observe(el);
+      });
+
+      buttons.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var target = document.getElementById(btn.getAttribute('data-section'));
+          if(target) target.scrollIntoView({ behavior:'smooth' });
+        });
+      });
+
+      /* ── Reveal on scroll ── */
+      var revealObserver = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){
+            e.target.classList.add('visible');
+            revealObserver.unobserve(e.target);
+          }
+        });
+      },{ threshold:0.08, rootMargin:'0px 0px -36px 0px' });
+
+      document.querySelectorAll('.reveal').forEach(function(el){
+        var siblings = el.parentElement.querySelectorAll('.reveal');
+        el.style.transitionDelay = (Array.prototype.indexOf.call(siblings, el) * 70) + 'ms';
+        revealObserver.observe(el);
+      });
+      /* ── Lightbox ── */
+      var lb = document.getElementById('lightbox');
+      var lbImg = lb.querySelector('img');
+      var lbClose = lb.querySelector('.lightbox-close');
+
+      document.querySelectorAll('.content-frame img').forEach(function(img){
+        img.addEventListener('click', function(){
+          lbImg.src = img.src;
+          lbImg.alt = img.alt;
+          lb.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+
+      function closeLightbox(){
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      lb.addEventListener('click', closeLightbox);
+      lbClose.addEventListener('click', closeLightbox);
+      lbImg.addEventListener('click', function(e){ e.stopPropagation(); closeLightbox(); });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeLightbox(); });
+    })();
+  </script>
+</body>
+</html>
