@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0208">
   <title>Siwen Fang — Senior Product Designer</title>
   <meta name="description" content="Senior product designer with 10+ years in design and 7 years in tech. Specializing in fintech, banking, and complex enterprise platforms.">
   <meta property="og:title" content="Siwen Fang — Senior Product Designer">
@@ -73,7 +75,10 @@
       --dur-slow: 450ms;
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      color-scheme: dark;
+    }
 
     body {
       font-family: var(--font-body);
@@ -83,6 +88,12 @@
       line-height: var(--leading-normal);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Anchor scroll: clear fixed nav + brand bar */
+    section[id] {
+      scroll-margin-top: calc(3px + 4.5rem);
     }
 
     /* ══════════ BRAND BAR ══════════ */
@@ -107,13 +118,18 @@
       background: var(--ink);
       color: var(--surface);
       padding: var(--space-3) var(--space-5);
-      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      border-radius: 0;
       font-size: var(--text-sm);
       font-weight: 600;
       z-index: 300;
       text-decoration: none;
     }
-    .skip-link:focus { top: 3px; }
+    .skip-link:focus,
+    .skip-link:focus-visible {
+      top: 3px;
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
 
     :focus-visible {
       outline: 2px solid var(--accent);
@@ -181,8 +197,11 @@
       letter-spacing: -0.01em;
       padding: var(--space-2);
       margin: calc(-1 * var(--space-2));
-      border-radius: var(--radius-sm);
+      border-radius: 0;
       transition: color var(--dur-fast) var(--ease-out);
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
     }
     .logo:hover { color: var(--accent); }
     .logo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -199,12 +218,22 @@
       font-size: var(--text-sm);
       font-weight: 500;
       padding: var(--space-2) var(--space-4);
-      border-radius: var(--radius-full);
+      border-radius: 0;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: color var(--dur-fast) var(--ease-out),
                   background var(--dur-fast) var(--ease-out);
     }
 
     .nav-links a:hover { color: var(--ink); }
+
+    .nav-links a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 0;
+    }
 
     .nav-links a.active {
       background: var(--ink);
@@ -220,6 +249,10 @@
       border: none;
       padding: var(--space-2);
       z-index: 110;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
     }
 
     .hamburger span {
@@ -236,6 +269,12 @@
     .hamburger.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
     .hamburger.is-open span:nth-child(2) { opacity: 0; }
     .hamburger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .hamburger:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 0;
+    }
 
     /* ══════════ HERO ══════════ */
     .hero {
@@ -375,7 +414,7 @@
       margin-top: var(--space-8);
       padding: var(--space-5) var(--space-6);
       border: 1px solid var(--border-light);
-      border-radius: var(--radius-lg);
+      border-radius: 0;
       background: linear-gradient(135deg, rgba(230,0,122,0.06) 0%, rgba(13,2,8,0.5) 50%, rgba(25,255,133,0.04) 100%);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     }
@@ -407,7 +446,7 @@
       align-items: center;
       gap: var(--space-2);
       padding: var(--space-3) var(--space-5);
-      border-radius: var(--radius-full);
+      border-radius: 0;
       font-family: var(--font-body);
       font-size: var(--text-sm);
       font-weight: 600;
@@ -525,27 +564,18 @@
     .project-thumb--1 {
       background: var(--surface-alt);
     }
+    .project-thumb--1 .project-num {
+      z-index: 0;
+    }
     .project-thumb--1::before {
       content: '';
       position: absolute;
-      width: 180px;
-      height: 180px;
-      border: 3px solid #e6007a;
-      opacity: 0.2;
-      border-radius: 50%;
-      top: 20%;
-      left: 12%;
-    }
-    .project-thumb--1::after {
-      content: '';
-      position: absolute;
-      width: 120px;
-      height: 120px;
-      background: #e6007a;
-      opacity: 0.08;
-      border-radius: 50%;
-      top: 30%;
-      left: 22%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+      background: url('images/case-study-1/Thumbnail.png') center/cover no-repeat;
     }
 
     .project-thumb--2 {
@@ -657,7 +687,7 @@
       color: var(--accent);
       background: linear-gradient(135deg, var(--accent-subtle), rgba(13,2,8,0.4));
       padding: 5px 14px;
-      border-radius: var(--radius-full);
+      border-radius: 0;
       border: 1px solid var(--accent-muted);
       margin-bottom: var(--space-3);
       box-shadow: 0 1px 0 rgba(255,255,255,0.05);
@@ -771,7 +801,7 @@
     .skill-tags span {
       padding: var(--space-2) var(--space-3);
       border: 1px solid var(--border);
-      border-radius: var(--radius-full);
+      border-radius: 0;
       font-size: var(--text-xs);
       color: var(--ink-secondary);
       background: rgba(13,2,8,0.6);
@@ -842,7 +872,7 @@
     .timeline-content .company a {
       color: var(--accent);
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: 0;
       padding: 0.15em 0.4em;
       margin: -0.15em -0.4em;
       transition:
@@ -912,13 +942,19 @@
       gap: var(--space-2);
       padding: var(--space-3) var(--space-5);
       border: 1.5px solid var(--border);
-      border-radius: var(--radius-full);
+      border-radius: 0;
       text-decoration: none;
       color: var(--ink);
       font-weight: 500;
       font-size: var(--text-sm);
       position: relative;
-      transition: all var(--dur-base) var(--ease-out);
+      min-height: 44px;
+      justify-content: center;
+      transition: color var(--dur-base) var(--ease-out),
+                  background var(--dur-base) var(--ease-out),
+                  border-color var(--dur-base) var(--ease-out),
+                  box-shadow var(--dur-base) var(--ease-out),
+                  transform var(--dur-base) var(--ease-out);
     }
 
     .contact-link:hover {
@@ -976,6 +1012,32 @@
     /* ══════════ REDUCED MOTION ══════════ */
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
+      body::before {
+        animation: none !important;
+        background-position: 50% 50%;
+      }
+      .hero::before,
+      .hero::after {
+        animation: none;
+      }
+      .hero h1.neon-active {
+        animation: none;
+      }
+      .hero h1 .cursor {
+        animation: none;
+        opacity: 1;
+      }
+      .btn-primary {
+        animation: none;
+        background: linear-gradient(60deg, #e6007a, #d70072, #ff0187);
+        background-size: 100% 100%;
+      }
+      .contact-link:hover {
+        animation: none;
+        background: linear-gradient(60deg, #e6007a, #d70072, #ff0187);
+        background-size: 100% 100%;
+        transform: none;
+      }
       .hero-animate {
         opacity: 1;
         animation: none;
@@ -1054,7 +1116,7 @@
         <a href="#experience" data-section="experience" role="menuitem">Experience</a>
         <a href="#contact" data-section="contact" role="menuitem">Contact</a>
       </div>
-      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <button type="button" class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
       </button>
     </nav>
@@ -1183,7 +1245,6 @@
             <h2 id="about-heading">Designing with empathy and intention.</h2>
           </div>
           <div class="about-body reveal">
-            <p>With over 10 years in design — rooted in landscape architecture and refined through 7 years in tech — I bring a unique perspective to digital product design. I've worked across banking, portfolio management enterprise platforms, and crypto exchanges, tackling complex financial systems head-on.</p>
             <p>My strength lies in interpreting complex, systematic problems and translating them into simple, user-friendly experiences. As a full-stack designer, I operate across research, interaction design, visual systems, and front-end — bridging the gap between strategy and execution.</p>
           </div>
         </div>
@@ -1391,6 +1452,16 @@
           hamburger.setAttribute('aria-expanded', 'false');
         });
       });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key !== 'Escape') return;
+        if (!navLinks.classList.contains('open')) return;
+        navLinks.classList.remove('open');
+        hamburger.classList.remove('is-open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        hamburger.focus();
+      });
+
       // Typewriter effect for hero heading
       (function() {
         var el = document.getElementById('heroTypewriter');
@@ -1398,6 +1469,12 @@
         var h1 = el.closest('h1');
 
         var full = 'I design products people love to use.';
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          el.textContent = full;
+          if (h1) h1.classList.add('neon-active');
+          return;
+        }
+
         var i = 0;
         var speed = 60;
 
